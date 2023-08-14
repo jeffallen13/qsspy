@@ -15,13 +15,12 @@ resume.head()
 
 resume.dtypes # firstname, sex, and race are currently strings
 
-resume.info()
-
 resume.describe() # by default, only summarizes numeric variables
 
 '''
-In 2.2.5, we'll discuss overriding this default behavior and alternatives
-for summarizing non-numeric data. 
+In 2.2.5, when we discuss categorical variables, we will also explore overriding 
+the `describe()` default behavior and alternatives for summarizing non-numeric 
+data.
 '''
 
 # contingency table (crosstab)
@@ -32,11 +31,11 @@ race_call_tab
 
 type(race_call_tab) # a data frame
 
-# the index and columns have names 
-race_call_tab.columns
-race_call_tab.index
+# the data frame's index and columns both have names
+print(race_call_tab.columns)
+print(race_call_tab.index)
 
-# cross-tab with margins
+# crosstab with margins
 pd.crosstab(resume.race, resume.call, margins=True)
 
 # overall callback rate: total callbacks divided by sample size 
@@ -62,7 +61,7 @@ resume['call'].mean() # overall callback rate
 
 # --------------------- Section 2.2 Subsetting in pandas --------------------- #
 
-# 2.2.1 Boolean values 
+# 2.2.1 Boolean values and Logical Operators
 
 type(True)
 
@@ -108,9 +107,9 @@ x = pd.Series([3, 2, 1, -2, -1])
 x >= 2
 x != 1
 
-# logical conjunction of two vectors with logical values
+# logical conjunction of two vectors with boolean values
 (x > 0) & (x <= 2)
-# logical disjunction of two vectors with logical values
+# logical disjunction of two vectors with boolean values
 (x > 2) | (x <= -1)
 
 x_int = (x > 0) & (x <= 2) # logical vector 
@@ -169,8 +168,8 @@ resumeWm['call'].mean() - resumeBm['call'].mean() # among males
 resume['BlackFemale'] = (np.where((resume.race == 'black') & 
                                   (resume.sex == 'female'), 1, 0))
 
-# three-way cross-tab
-pd.crosstab(resume.BlackFemale, [resume.race, resume.sex])
+# three-way crosstab
+pd.crosstab([resume.race, resume.sex], resume.BlackFemale)
 
 # drop the BlackFemale column in place
 resume.drop('BlackFemale', axis=1, inplace=True)
@@ -180,8 +179,8 @@ resume.drop('BlackFemale', axis=1, inplace=True)
 
 '''
 Recall, firstname, sex, and race are currently strings, but for analytical
-purposes, they are categorical variables because values in a column belong to 
-one of a limited number of groups. Let's convert firstname, sex, and race to 
+purposes, they are categorical variables because values in these columns belong 
+to one of a limited number of groups. Let's convert firstname, sex, and race to 
 the pandas categorical data type. 
 '''
 
@@ -209,10 +208,14 @@ resume.describe(include='all') # output is not visually appealing
 # create a factor variable 
 
 resume['type'] = np.nan
-resume.loc[(resume.race == "black") & (resume.sex == "female"), 'type'] = 'BlackFemale'
-resume.loc[(resume.race == "black") & (resume.sex == "male"), 'type'] = 'BlackMale'
-resume.loc[(resume.race == "white") & (resume.sex == "female"), 'type'] = 'WhiteFemale'
-resume.loc[(resume.race == "white") & (resume.sex == "male"), 'type'] = 'WhiteMale'
+(resume.loc[(resume.race == "black") & 
+            (resume.sex == "female"), 'type']) = 'BlackFemale'
+(resume.loc[(resume.race == "black") & 
+            (resume.sex == "male"), 'type']) = 'BlackMale'
+(resume.loc[(resume.race == "white") & 
+            (resume.sex == "female"), 'type']) = 'WhiteFemale'
+(resume.loc[(resume.race == "white") & 
+            (resume.sex == "male"), 'type']) = 'WhiteMale'
 
 # A faster alternative: 
 
@@ -247,8 +250,8 @@ resume['type'].cat.categories
 # obtain the number of observations in each category
 resume['type'].value_counts(sort=False)
 
-# obtain the proportion of observations in each category
-resume['type'].value_counts(sort=False, normalize=True)
+# compute callback rate for each category
+resume.groupby('type')['call'].mean()
 
 # compute callback rate for each first name using groupby
 callback_name = resume.groupby('firstname')['call'].mean()
@@ -280,26 +283,29 @@ social[['sex', 'messages']] = social[['sex', 'messages']].astype('category')
 
 social['messages'].cat.categories
 
-social['messages'].cat.ordered
-
 # re-order the categories, so the control group is first
 social['messages'] = social['messages'].cat.reorder_categories(
     ['Control', 'Civic Duty', 'Hawthorne', 'Neighbors'])
 
 social['messages'].cat.categories
 
-# calculate mean turnout for each message type
+'''
+Even though we re-ordered the levels, we have not converted messages to an 
+ordered categorical variable.
+'''
+social['messages'].cat.ordered
+
+# turnout for each group
 social.groupby('messages')['primary2006'].mean()
 
-# mean turnout for the control group
+# turnout for control group
 social['primary2006'][social.messages == 'Control'].mean()
 
-# subtract the control group mean from each group mean
+# subtract control group turnout from each group
 (social.groupby('messages')['primary2006'].mean() - 
  social['primary2006'][social.messages == 'Control'].mean())
 
-# create an age variable
-social['age'] = 2006 - social['yearofbirth']
+social['age'] = 2006 - social['yearofbirth'] # create age variable
 
 # calculate mean of age for each message type
 social.groupby('messages')['age'].mean()
@@ -321,15 +327,15 @@ specify that in pd.read_csv() using the dtype argument and a dictionary.
 minwage = pd.read_csv('minwage.csv', 
                       dtype={'chain': 'category', 'location': 'category'})
 
+minwage.info()
+
 minwage.shape
 
 minwage.describe().round(2)
 
-minwage.info()
+minwage['chain'].value_counts()
 
-minwage['chain'].cat.categories
-
-minwage['location'].cat.categories
+minwage['location'].value_counts()
 
 # subsetting the data into two states
 minwageNJ = minwage.loc[minwage.location != 'PA'].copy()
@@ -374,7 +380,8 @@ minwageNJ_bk_subset = (
                      (minwageNJ_bk.location != 'centralNJ')].copy()
 )
 
-minwageNJ_bk_subset['fullPropAfter'].mean() - minwagePA_bk['fullPropAfter'].mean()
+(minwageNJ_bk_subset['fullPropAfter'].mean() - 
+ minwagePA_bk['fullPropAfter'].mean())
 
 # --- Section 2.5.3: Before-and-After and Difference-in-Differences Design --- #
 
@@ -411,7 +418,7 @@ minwageNJ['fullPropAfter'].median() - minwagePA['fullPropAfter'].median()
 NJdiff_med = (minwageNJ['fullPropAfter'].median() - 
               minwageNJ['fullPropBefore'].median())
 
-NJdiff_med
+NJdiff_med.round(3)
 
 # median difference-in-differences
 PAdiff_med = (minwagePA['fullPropAfter'].median() - 
@@ -420,12 +427,13 @@ PAdiff_med = (minwagePA['fullPropAfter'].median() -
 NJdiff_med - PAdiff_med
 
 # describe() shows quartiles as well as minimum, maximum, and mean
-minwageNJ['wageBefore'].describe()
+minwageNJ['wageBefore'].describe().round(2)
 
-minwageNJ['wageAfter'].describe()
+minwageNJ['wageAfter'].describe().round(2)
 
 # find the interquartile range (IQR)
-minwageNJ['wageBefore'].quantile(0.75) - minwageNJ['wageBefore'].quantile(0.25)
+(minwageNJ['wageBefore'].quantile(0.75) - 
+ minwageNJ['wageBefore'].quantile(0.25)).round(2)
 
 minwageNJ['wageAfter'].quantile(0.75) - minwageNJ['wageAfter'].quantile(0.25)
 
@@ -436,7 +444,8 @@ minwageNJ['wageBefore'].quantile(np.arange(0, 1.1, 0.1))
 minwageNJ['wageAfter'].quantile(np.arange(0, 1.1, 0.1))
 
 # Section 2.6.2: Standard Deviation
-np.sqrt((minwageNJ['fullPropAfter'] - minwageNJ['fullPropBefore']).pow(2).mean())
+(np.sqrt((minwageNJ['fullPropAfter'] - 
+          minwageNJ['fullPropBefore']).pow(2).mean()))
 
 (minwageNJ['fullPropAfter'] - minwageNJ['fullPropBefore']).mean()
 
@@ -447,4 +456,3 @@ minwageNJ['fullPropAfter'].std()
 # variance
 minwageNJ['fullPropBefore'].var()
 minwageNJ['fullPropAfter'].var()
-
