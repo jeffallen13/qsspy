@@ -142,10 +142,6 @@ resumeB['call'].mean() # callback rate for blacks
 # keep only the "call" and "firstname" variables 
 resumeBf = (resume.loc[(resume.race == 'black') & 
                        (resume.sex == 'female'), ['call', 'firstname']])
-'''
-Notice, we can use parentheses to break up a line and circumvent the python 
-white space rules. 
-'''
 
 resumeBf.head(n=6)
 
