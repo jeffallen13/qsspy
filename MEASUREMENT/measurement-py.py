@@ -86,10 +86,22 @@ ISAF_ptable['response'] = ['No harm', 'Harm', 'Nonresponse']
 # plot using the catplot family and kind='bar'
 sns.catplot(
     data=ISAF_ptable, x='response', y='proportion', color='gray',
-    kind='bar', estimator=sum 
+    kind='bar', estimator=sum, height=4, aspect=1.5
 ).set(title='Civilian victimization by the ISAF', 
       xlabel='Response category', ylabel='Proportion of the respondents',
       ylim=(0, 0.7))
+
+'''
+Notice, we use estimator=sum because seaborn bar plots aggregate the data by
+a given function. The default aggregation function is mean. Since we have
+already calculated proportions, we can use sum to ensure there is no further
+aggregation. Another strategy for creating the bar plot is to use the mean 
+aggregation directly on the original data frame categories. 
+
+Additionally, we set the height and aspect ratios directly. The default height
+is 5 inches and the default aspect ratio is 1. The aspect ratio is the ratio of
+the width to the height. Therefore, the default width is 5 inches.
+'''
 
 # repeat the same for the Taliban
 Taliban_ptable = (afghan['violent.exp.taliban'].
@@ -99,25 +111,23 @@ Taliban_ptable['response'] = ['No harm', 'Harm', 'Nonresponse']
 
 sns.catplot(
     data=Taliban_ptable, x='response', y='proportion', color='gray',
-    kind='bar', estimator=sum 
+    kind='bar', estimator=sum, height=4, aspect=1.5
 ).set(title='Civilian victimization by the Taliban', 
       xlabel='Response category', ylabel='Proportion of the respondents',
       ylim=(0, 0.7))
 
 # Section 3.3.2: Histogram
 
-# Use a different seaborn theme
-sns.set_theme(style="whitegrid")
-
 sns.displot(
-    data=afghan, x='age', stat='density',
+    data=afghan, x='age', stat='density', color='gray', 
+    height=4, aspect=1.5
 ).set(title="Distribution of respondents' age", xlabel='Age')
 
 # histogram of education
 # use binrange and binwidth to control the bins
 sns.displot(
-    data=afghan, x='educ.years', stat='density', 
-    binrange=(-0.5, 18.5), binwidth=1
+    data=afghan, x='educ.years', stat='density', color='gray', 
+    binrange=(-0.5, 18.5), binwidth=1, height=4, aspect=1.5
 ).set(title="Distribution of respondents' education", 
       xlabel='Years of education')
 
@@ -136,6 +146,7 @@ afghan['province'] = afghan['province'].astype('category')
 
 sns.catplot(
     data=afghan, x='province', y='educ.years', kind='box', color='gray',
+    height=4, aspect=1.5
 ).set(title='Education by province', xlabel='', ylabel='Years of education')
 
 afghan.groupby('province')['violent.exp.taliban'].mean()
@@ -144,15 +155,18 @@ afghan.groupby('province')['violent.exp.ISAF'].mean()
 
 # Section 3.3.4: Saving Plots
 
-# save via point-and-click
+# Option 1: Save via point-and-click in IDE
 
-# run code + plt.savefig()
+# Option 2: Run plot code plus plt.savefig()
 
 sns.catplot(
     data=afghan, x='province', y='educ.years', kind='box', color='gray',
+    height=4, aspect=1.5
 ).set(title='Education by province', xlabel='', ylabel='Years of education')
 
 plt.savefig('education-by-province.png', bbox_inches='tight')
+
+plt.close() # preventing plot from re-displaying
 
 # ----------------------- Section 3.4: Survey Sampling ----------------------- #
 
@@ -169,16 +183,17 @@ afghan_village['village_surveyed_desc'] = (
 # boxplots for altitude 
 sns.catplot(
     data=afghan_village, x='village_surveyed_desc', y='altitude', kind='box',
-    color='gray'
+    color='gray', height=4, aspect=1.5
 ).set(ylabel='Altitude (meters)', xlabel='')
 
 
+# add the natural log of population to the data frame
 afghan_village['log_pop'] = np.log(afghan_village['population'])
 
 # boxplots for log population 
 sns.catplot(
     data=afghan_village, x='village_surveyed_desc', y='log_pop', kind='box',
-    color='gray'
+    color='gray', height=4, aspect=1.5
 ).set(ylabel='Log population', xlabel='')
 
 # Section 3.4.2: Nonresponse and Other Sources of Bias 
@@ -215,6 +230,7 @@ congress.head()
 
 congress.dtypes
 
+# store some plotting parameters for re-use
 xlab='Economic liberalism/conservatism'
 ylab='Racial liberalism/conservatism'
 lim=(-1.5, 1.5)
@@ -223,14 +239,16 @@ lim=(-1.5, 1.5)
 sns.relplot(
     data=congress.loc[(congress['congress'] == 80) & 
                       (congress['party'] != 'Other')],
-    x='dwnom1', y='dwnom2', hue='party', style='party', palette=['b', 'r']
+    x='dwnom1', y='dwnom2', hue='party', style='party', palette=['b', 'r'],
+    height=4, aspect=1.5
 ).set(title='80th Congress', xlabel=xlab, ylabel=ylab, xlim=lim, ylim=lim)
 
 # scatterplot for 112th congress
 sns.relplot(
     data=congress.loc[(congress['congress'] == 112) & 
                       (congress['party'] != 'Other')],
-    x='dwnom1', y='dwnom2', hue='party', style='party', palette=['b', 'r']
+    x='dwnom1', y='dwnom2', hue='party', style='party', palette=['b', 'r'],
+    height=4, aspect=1.5
 ).set(title='112th Congress', xlabel=xlab, ylabel=ylab, xlim=lim, ylim=lim)
 
 # Find the median for combinations of party and congress
@@ -239,7 +257,7 @@ dwn1_med = (congress.loc[congress.party != 'Other'].
 
 sns.relplot(
     data=dwn1_med, x='congress', y='dwnom1', hue='party', kind='line',
-    palette=['b', 'r']
+    palette=['b', 'r'], height=4, aspect=1.5
 ).set(ylim=(-1, 1), xlabel='Congress', 
       ylabel='DW-NOMINATE score (1st dimension)')
 
@@ -249,6 +267,7 @@ gini = pd.read_csv('USGini.csv')
 
 '''
 Calculate the difference between the Republican and Democratic medians.
+
 pandas will try to align indexes in conducting vector arithmetic. Therefore, 
 it is best to reset the index and drop the old one so that the indexes are the
 same. An alternative is to use numpy arrays. 
@@ -261,13 +280,15 @@ med_diff = (
 # time series plot for partisan differences 
 # notice, we can feed x and y directly
 sns.relplot(
-    x=np.arange(1947.5, 2012.5, step=2), y=med_diff, kind='line', color='black'
+    x=np.arange(1947.5, 2012.5, step=2), y=med_diff, kind='line', 
+    color='black', height=4, aspect=1.5
 ).set(title='Political Polarization', xlabel='Year',
       ylabel='Republican median - Democratic median')
 
 # time-series plot for Gini coefficient
 sns.relplot(
-    data=gini, x='year', y='gini', kind='line', color='black'
+    data=gini, x='year', y='gini', kind='line', color='black',
+    height=4, aspect=1.5
 ).set(title='Income Inequality', ylabel='Gini coefficient', xlabel='Year')
 
 '''
@@ -288,12 +309,14 @@ rep112 = congress.loc[(congress['congress'] == 112) &
                       (congress['party'] == 'Republican')]
 
 sns.displot(
-    data=dem112, x='dwnom2', stat='density'
+    data=dem112, x='dwnom2', stat='density', color='gray',
+    height=4, aspect=1.5
 ).set(title='Democrats', xlabel='Racial liberalism/conservatism dimension',
       xlim=(-1.5, 1.5), ylim=(0, 1.75))
 
 sns.displot(
-    data=rep112, x='dwnom2', stat='density'
+    data=rep112, x='dwnom2', stat='density', color='gray',
+    height=4, aspect=1.5
 ).set(title='Republicans', xlabel='Racial liberalism/conservatism dimension',
       xlim=(-1.5, 1.5), ylim=(0, 1.75))
 
@@ -310,7 +333,7 @@ demq = dem112['dwnom2'].quantile(quantiles)
 repq = rep112['dwnom2'].quantile(quantiles)
 
 sns.relplot(
-    x = demq, y = repq
+    x = demq, y = repq, height=4, aspect=1.5
 ).set(xlabel='Democrats', ylabel='Republicans',
       title='Racial liberalism/conservatism dimension',
       ylim=(-1.5, 1.5), xlim=(-1.5, 1.5))
@@ -367,7 +390,7 @@ z.mean()
 
 # Two-dimensional arrays as matrices
 
-# create a two-dimensional numpy array using a range
+# create a two-dimensional numpy array from a range
 mat = np.arange(0, 10).reshape(5, 2)
 
 mat
@@ -381,21 +404,24 @@ mat[:,1]
 # select the first two rows and the second column
 mat[0:2, 1]
 
-# obtain the sum of the columns
+# calculate the sum of the columns
 mat.sum(axis=0)
 
-# obtain the mean of the rows
+# calculate the mean of the rows
 mat.mean(axis=1)
 
-# obtain the standard deviation of the columns
+# calculate the standard deviation of the columns
 mat.std(axis=0)
 
-# a matrix generally must have the same data type for all elements
-# a data frame can have different data types for each column
 
-df = pd.DataFrame({'x': [1, 2, 3], 'y': ['a', 'b', 'c']})
+'''
+A matrix generally must have the same data type for all elements. A data frame
+can have different data types for each column.
+'''
 
-df.dtypes
+df = pd.DataFrame({'x': ['a', 'b', 'c'], 'y': [1, 2, 3]})
+
+df.dtypes # contains a string and an integer
 
 np.array(df).dtype # produces a dtype 'O' for object; in other words, a string 
 
@@ -404,11 +430,11 @@ np.array(df).dtype # produces a dtype 'O' for object; in other words, a string
 # check the object class 
 type(congress)
 
-# review an object's methods and attributes
-dir(congress)
+# review an object's methods and attributes; print the first 15
+dir(congress)[0:15]
 
 # use a list comprehension to get the non-private attributes and methods
-[item for item in dir(congress) if not item.startswith('_')]
+[item for item in dir(congress) if not item.startswith('_')][0:15]
 
 # use the data frame's value_counts "method"
 congress['party'].value_counts()
@@ -434,7 +460,7 @@ k112two = KMeans(n_clusters=2, n_init=5)
 Note: If you are working on Windows, you may get a warning about about memory 
 leakage associated with using KMeans on Windows. The warning will likely
 recommend setting the environmental variable OPM_NUM_THREADS to a certain value.
-You can do this by: 
+To do so, follow these steps: 
 (1) Click on the Windows Search button
 (2) Type "Edit the system environment variables"
 (3) Select "Environment Variables"
@@ -455,7 +481,7 @@ k112two_labels = k112two.predict(dwnom112)
 
 type(k80two_labels) # numpy.ndarray
 
-# Use a list comprehension to get the non-private methods
+# Use a list comprehension to view the non-private methods
 [item for item in dir(k80two) if not item.startswith('_')]
 
 # final centroids
