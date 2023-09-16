@@ -60,4 +60,5 @@ Other popular Python IDEs include:
 ## References
 
 >Imai, Kosuke (2017). *Quantitative Social Science: An Introduction.* Princeton University Press. 
+>
 >McKinney, Wes (2022). *Python for Data Analysis: Data Wrangling with pandas, NumPy, and Jupyter, 3rd Edition.* O'Reilly Media.
