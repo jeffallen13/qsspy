@@ -20,7 +20,15 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 | 6. Probability | **X** |
 | 7. Uncertainty| **X** |
 
-## Built With
+## Setup
+
+Chapter 1 will include guidance on setting up a Python analytical environment. In the meantime, below are some recommendations for getting started.
+
+### Installation and Packages
+
+I recommend following the [Installation and Setup](https://wesmckinney.com/book/preliminaries#installation_and_setup) instructions in Wes McKinney's [Python for Data Analysis, 3E](https://wesmckinney.com/book/). The instructions include guidance on installing [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) and installing packages from [conda-forge](https://conda-forge.org/).
+
+The companion guides use the following packages extensively:
 
 - [pandas](https://pandas.pydata.org/)
 - [numpy](https://numpy.org/) 
@@ -29,6 +37,27 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 - [statsmodels](https://www.statsmodels.org/stable/index.html)
 - [scikit-learn](https://scikit-learn.org/stable/)
 
-## Reference
+### Integrated Development Environments
+
+There are a wide variety of ways to conduct data analysis using Python. 
+
+The companion guides were built using the [VS Code](https://code.visualstudio.com/) integrated development environment (IDE) and VS Code's Jupyter notebooks integration. 
+
+If you elect to use VS Code, helpful VS Code documentation pages include:
+
+- [Getting Started with Python in VS Code](https://code.visualstudio.com/docs/python/python-tutorial)
+- [Data Science in Visual Studio Code](https://code.visualstudio.com/docs/datascience/overview)
+- [Jupyter Notebooks in Visual Studio Code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)
+- [Data Science in VS Code Tutorial](https://code.visualstudio.com/docs/datascience/data-science-tutorial)
+- [Python Interactive Window](https://code.visualstudio.com/docs/python/jupyter-support-py)
+
+Other popular Python IDEs include: 
+
+- [PyCharm](https://www.jetbrains.com/pycharm/)
+- [Spyder](https://www.spyder-ide.org/) 
+- [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/)
+
+## References
 
 >Imai, Kosuke (2017). *Quantitative Social Science: An Introduction.* Princeton University Press. 
+>McKinney, Wes (2022). *Python for Data Analysis: Data Wrangling with pandas, NumPy, and Jupyter, 3rd Edition.* O'Reilly Media.
