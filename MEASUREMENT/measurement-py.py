@@ -415,15 +415,20 @@ mat.std(axis=0)
 
 
 '''
-A matrix generally must have the same data type for all elements. A data frame
-can have different data types for each column.
+If we intend to treat a two-dimensional numpy array as a matrix, then the array 
+must have the same data type for all elements. A data frame can have different 
+data types for each column.
 '''
 
 df = pd.DataFrame({'x': ['a', 'b', 'c'], 'y': [1, 2, 3]})
 
 df.dtypes # contains a string and an integer
 
-np.array(df).dtype # produces a dtype 'O' for object; in other words, a string 
+# convert the data frame to a numpy array
+np.array(df)
+
+# convert a list with integers and strings to a numpy array
+np.array([1, 2, 'a', 'b'])
 
 # Section 3.7.2: Objects in Python
 
@@ -532,3 +537,220 @@ sns.scatterplot(
     x=k112four.cluster_centers_[:,0], y=k112four.cluster_centers_[:,1], 
     legend=False, color='black', s=100, marker='X', ax=ax,
     )
+
+# ----------------------- Appendix: Plot Customization ----------------------- #
+
+'''
+This appendix demonstrates how to use themes, sub-plots, facets, and groupings 
+to compare distributions and relationships.
+'''
+
+# Section A.1: Grouped Bar Plot
+
+# Recall the univariate distributions
+ISAF_ptable
+
+Taliban_ptable
+
+'''
+We can view these distributions side-by-side in a barplot using groupings. 
+Grouped visualizations work best in seaborn when the grouping variable is in 
+its own column. 
+'''
+
+# add an identifer for combatant (the grouping variable)
+ISAF_ptable['Combatant'] = 'ISAF'
+Taliban_ptable['Combatant'] = 'Taliban'
+
+# stack the two data frames using concatenation; leave out the first column
+combatants_ptable = pd.concat([ISAF_ptable.iloc[:,1:], 
+                               Taliban_ptable.iloc[:,1:]], axis=0)   
+
+combatants_ptable
+
+sns.set_theme(style="darkgrid")
+
+sns.catplot(
+    data=combatants_ptable, x='response', y='proportion', kind='bar',
+    estimator=sum, hue='Combatant', height=4, aspect=1.5
+).set(xlabel='Response category', ylabel='Proportion of the respondents',
+      title='Civilian victimization by combatants in Afghanistan')
+
+# Section A.2: Histogram
+
+# Use a different seaborn theme
+sns.set_theme(style="whitegrid")
+
+sns.displot(
+    data=afghan, x='age', stat='density', height=4, aspect=1.5
+).set(title="Distribution of respondents' age", xlabel='Age')
+
+'''
+By default, seaborn removes the top and right plot spines. We can use the 
+despine method to add them back. 
+'''
+
+# histogram of education
+sns.displot(
+    data=afghan, x='educ.years', stat='density', 
+    binrange=(-0.5, 18.5), binwidth=1, height=4, aspect=1.5
+).set(title="Distribution of respondents' education", 
+      xlabel='Years of education').despine(right=False, top=False)
+
+# add a vertical line representing the median
+plt.axvline(x=afghan['educ.years'].median(), color='black', linestyle='--')
+
+# add a text label for the median
+plt.text(x=1.5, y=0.5, s='median')
+
+# Section A.3: Box Plots and Subplots
+
+sns.catplot(
+    data=afghan, x='province', y='educ.years', kind='box', color='gray',
+    height=4, aspect=1.5
+).set(title='Education by province', xlabel='', ylabel='Years of education')
+
+afghan_village.head()
+
+'''
+Creating subplots requires using matplotlib subplots and seaborn axes-level 
+plotting functions.
+'''
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# boxplots for altitude 
+sns.boxplot(
+    data=afghan_village, x='village_surveyed_desc', y='altitude', 
+    color='gray', ax=axs[0]
+).set(ylabel='Altitude (meters)', xlabel='')
+
+# boxplots for log population 
+sns.boxplot(
+    data=afghan_village, x='village_surveyed_desc', y='log_pop', 
+    color='gray', ax=axs[1]
+).set(ylabel='Log population', xlabel='')
+
+# Section A.4: Scatterplots and Facets
+
+congress.head()
+
+# create a new column that formats congress as a string
+congress['Congress'] = congress['congress'].astype(str) + 'th'
+
+congress[['congress', 'Congress']].head()
+
+# recall, we stored some plotting parameters for re-use
+xlab
+
+lim
+
+sns.set_theme(style="white")
+
+# scatterplot: facets for 80th and 112th congresses
+sns.relplot(
+    data=congress.loc[(congress['congress'].isin([80,112])) & 
+                      (congress['party'] != 'Other')],
+    x='dwnom1', y='dwnom2', hue='party', style='party', palette=['b', 'r'],
+    col='Congress', # specify the column for faceting
+).set(xlabel=xlab, ylabel=ylab, ylim=lim)
+
+
+# Section A.5: Comparing Time Series
+
+sns.set_theme(style="whitegrid")
+
+sns.relplot(
+    data=dwn1_med, x='congress', y='dwnom1', hue='party', kind='line',
+    palette=['b', 'r'], height=4, aspect=1.5
+).set(ylim=(-1, 1), xlabel='Congress', 
+      ylabel='DW-NOMINATE score (1st dimension)')
+
+med_diff.head()
+
+# Plot political polarization and income inequality side-by-side
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# time series plot for partisan differences 
+# notice, we can feed x and y directly
+sns.lineplot(
+    x=np.arange(1947.5, 2012.5, step=2), y=med_diff, color='black', ax=axs[0]
+).set(title='Political Polarization', xlabel='Year',
+      ylabel='Republican median - Democratic median')
+
+# time-series plot for Gini coefficient
+sns.lineplot(
+    data=gini, x='year', y='gini', color='black', ax=axs[1]
+).set(title='Income Inequality', ylabel='Gini coefficient', xlabel='Year')
+
+# Section A.6: Comparing Distributions
+
+sns.set_theme(style="darkgrid")
+
+# Facet
+# use common_norm=False to ensure density is calculated for each facet
+sns.displot(
+    data=congress.loc[(congress['congress'] == 112) & 
+                      (congress['party'] != 'Other')],
+    x='dwnom2', col='party', stat='density', common_norm=False
+).set(xlim=(-1.5, 1.5), ylim=(0, 1.75), 
+      xlabel='Racial liberalism/conservatism dimension')
+
+# KDE
+sns.displot(
+    data=congress.loc[(congress['congress'] == 112) & 
+                      (congress['party'] != 'Other')],
+    x='dwnom2', hue='party', kind='kde', common_norm=False, 
+    height=4, aspect=1.5
+).set(title='Racial liberalism/conservatism dimension', xlabel='')
+
+# Quantile-Quantile Plot
+
+# recall, we developed percentiles to build a Q-Q plot
+demq.head()
+repq.head()
+
+sns.set_theme(style="whitegrid")
+
+sns.relplot(
+    x = demq, y = repq, height=4, aspect=1.5
+).set(xlabel='Democrats', ylabel='Republicans',
+      title='Racial liberalism/conservatism dimension',
+      ylim=(-1.5, 1.5), xlim=(-1.5, 1.5)).despine(
+            right=False, top=False
+      )
+
+plt.gca().axline((0, 0), slope=1, color='red', linestyle='--')
+
+# Section A.7: Comparing Clusters
+
+# Recall our plotting inputs for the cluster plots
+dwnom80.head()
+
+k80four_labels[:10]
+
+k112four.cluster_centers_
+
+# plot the clusters side-by-side
+fig, axs = plt.subplots(1,2, figsize=(12, 5))
+
+sns.scatterplot(
+    data=dwnom80, x='dwnom1', y='dwnom2', hue=k80four_labels, legend=False,
+    palette='pastel', ax=axs[0], # plot 1
+    ).set(title='80th Congress', xlabel=xlab, ylabel=ylab, xlim=lim, ylim=lim)
+
+sns.scatterplot(
+    x=k80four.cluster_centers_[:,0], y=k80four.cluster_centers_[:,1], 
+    legend=False, color='black', s=100, marker='X', ax=axs[0], # plot 1
+    )
+
+sns.scatterplot(
+    data=dwnom112, x='dwnom1', y='dwnom2', hue=k112four_labels, legend=False,
+    palette='pastel', ax=axs[1], # plot 2
+    ).set(title='112th Congress', xlabel=xlab, ylabel='', xlim=lim, ylim=lim)
+
+sns.scatterplot(
+    x=k112four.cluster_centers_[:,0], y=k112four.cluster_centers_[:,1], 
+    legend=False, color='black', s=100, marker='X', ax=axs[1], # plot 2
+    )
+
