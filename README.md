@@ -39,23 +39,22 @@ The companion guides use the following packages extensively:
 
 ### Integrated Development Environments
 
-There are a wide variety of ways to conduct data analysis using Python. 
+There are a variety of popular integrated development environments (IDEs) for conducting data analysis in Python, including:
 
-The companion guides were built using the [VS Code](https://code.visualstudio.com/) integrated development environment (IDE) and VS Code's Jupyter notebooks integration. 
-
-If you elect to use VS Code, helpful VS Code documentation pages include:
-
-- [Getting Started with Python in VS Code](https://code.visualstudio.com/docs/python/python-tutorial)
-- [Data Science in Visual Studio Code](https://code.visualstudio.com/docs/datascience/overview)
-- [Jupyter Notebooks in Visual Studio Code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)
-- [Data Science in VS Code Tutorial](https://code.visualstudio.com/docs/datascience/data-science-tutorial)
-- [Python Interactive Window](https://code.visualstudio.com/docs/python/jupyter-support-py)
-
-Other popular Python IDEs include: 
-
+- [VS Code](https://code.visualstudio.com/)
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Spyder](https://www.spyder-ide.org/) 
 - [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/)
+
+The companion guides were built using the VS Code IDE and VS Code's Jupyter notebooks integration. If you elect to use VS Code, helpful documentation pages include:
+
+- [Getting Started with Python in VS Code](https://code.visualstudio.com/docs/python/python-tutorial)
+- [Jupyter Notebooks in Visual Studio Code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)
+- [Data Science in Visual Studio Code](https://code.visualstudio.com/docs/datascience/overview)
+- [Data Science in VS Code Tutorial](https://code.visualstudio.com/docs/datascience/data-science-tutorial)
+- [Python Interactive Window](https://code.visualstudio.com/docs/python/jupyter-support-py)
+
+For those coming from an R background, Spyder is similar to RStudio.
 
 ## References
 
