@@ -50,7 +50,6 @@ The companion guides were built using the VS Code IDE and VS Code's Jupyter note
 
 - [Getting Started with Python in VS Code](https://code.visualstudio.com/docs/python/python-tutorial)
 - [Jupyter Notebooks in Visual Studio Code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)
-- [Data Science in Visual Studio Code](https://code.visualstudio.com/docs/datascience/overview)
 - [Data Science in VS Code Tutorial](https://code.visualstudio.com/docs/datascience/data-science-tutorial)
 - [Python Interactive Window](https://code.visualstudio.com/docs/python/jupyter-support-py)
 
