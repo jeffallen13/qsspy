@@ -289,4 +289,203 @@ plt.scatter(0, 45.65, color='red', s=100)
 
 # Section 4.2.1: Facial Appearance and Election Outcomes
 
+# load the data
+
+face = pd.read_csv('face.csv')
+
+# two-party vote share for Democrats and Republicans
+face['d_share'] = face['d.votes'] / (face['d.votes'] + face['r.votes'])
+face['r_share'] = face['r.votes'] / (face['d.votes'] + face['r.votes'])
+face['diff_share'] = face['d_share'] - face['r_share']
+
+sns.relplot(
+    data=face, x='d.comp', y='diff_share', 
+    hue='w.party', palette=['b','r'], legend=False, height=4, aspect=1.5
+).set(xlim=(0, 1), ylim=(-1, 1), yticks=np.arange(-1.0, 1.5, 0.5),
+      title='Facial competence and vote share',
+      xlabel='Competence scores for Democrats',
+      ylabel='Democratic margin in vote share')
+
+# Section 4.2.2: Correlation and Scatter Plots
+face['d.comp'].corr(face['diff_share'])
+
+# Section 4.2.3: Least Squares
+
+# import the statsmodels formula API
+import statsmodels.formula.api as smf
+
+'''
+statsmodels works best when column names do not contain spaces or special
+characters, such as dots. The chapter appendix provides a more in-depth
+discussion about why this is the case and how to use the module if you want to
+retain special characters or spaces in your variable names. For now, though, 
+we will replace the dots in the column names with underscores to prevent any 
+errors. 
+'''
+
+# replace dots in column names with underscores
+face.columns = face.columns.str.replace('.', '_')
+
+face.columns
+
+# fit the model; the statsmodels formula API uses R-style formulas
+fit = smf.ols('diff_share ~ d_comp', data=face).fit()
+
+fit.model.formula
+
+# get the estimated coefficients
+fit.params
+
+# get fitted or predicted values
+fit.fittedvalues.head(n=10)
+
+# store the intercept and slope for plotting a regression line
+intercept, slope = fit.params
+
+# generate 100 evenly spaced values between 0-1
+x_values = np.linspace(0, 1, 100)
+
+# using the slope and intercept, predict values over the range of x_values
+y_values = intercept + slope * x_values
+
+sns.set_theme(style="whitegrid")
+
+# plot a scatterplot and overlay a regression line
+sns.relplot(
+    data=face, x='d_comp', y='diff_share', height=4, aspect=1.5
+).set(xlim=(-0.02, 1), ylim=(-1, 1), yticks=np.arange(-1.0, 1.5, 0.5),
+      title='Facial competence and vote share',
+      xlabel='Competence scores for Democrats',
+      ylabel='Democratic margin in vote share').despine(right=False, top=False)
+
+plt.plot(x_values, y_values) # regression line
+
+plt.axvline(x=0, color='black', linewidth=0.5, linestyle='--')
+
+'''
+Note that seaborn has a built-in function for plotting regression lines, which 
+we'll use later, but it is not as easy to show the regression line's 
+intersection with the x-axis.
+'''
+
+epsilon_hat = fit.resid # residuals
+np.sqrt((epsilon_hat**2).mean()) # RMSE
+
+# Section 4.2.4: Regression Torwards the Mean
+
+# Section 4.2.5: Merging Datasets in Pandas
+
+pres12 = pd.read_csv('pres12.csv')
+
+# quick look at the two data sets
+pres08.head()
+
+pres12.head()
+
+# merge two data frames
+pres = pd.merge(pres08, pres12, on='state')
+
+pres.head()
+
+pres.describe().round(2)
+
+# change the variable name for illustration
+pres12.rename(columns={'state': 'state_abb'}, inplace=True)
+
+pres12.head()
+
+# merging data sets using variable keys with different names
+pres = (pd.merge(pres08, pres12, left_on='state', right_on='state_abb').
+        drop('state_abb', axis=1))
+
+pres.head()
+
+pres.describe().round(2)
+
+# concatenate two data frames
+pres1 = pd.concat([pres08, pres12], axis='columns')
+
+pres1.head()
+
+# DC and DE are flipped in this alternative approach 
+pres1.iloc[7:9]
+
+# merge() does not have this problem
+pres.iloc[7:9]
+
+'''
+However, if we moved the state identifier to the index, then pd.concat() 
+would align the indexes correctly, similar to a merge. 
+'''
+pres2 = pd.concat([pres08.set_index('state'), 
+                   pres12.set_index('state_abb')], axis='columns')
+
+pres2.iloc[7:9]
+
+'''
+pandas and numpy do not have built-in z-score functions. We can either
+calculate the z-scores manually, use the zscore function from the scipy module,
+or build a simple function of our own. In this case, the final option is 
+straightforward.
+'''
+
+# define a function to standardize a vector (calculate z-scores)
+def standardize(x):
+    return (x - x.mean()) / x.std()
+
+pres['Obama2008_z'] = standardize(pres['Obama_x'])
+pres['Obama2012_z'] = standardize(pres['Obama_y'])
+
+# estimated intercept is essentially zero   
+fit1 = smf.ols('Obama2012_z ~ Obama2008_z', data=pres).fit()
+fit1.params
+
+# regression without an intercept
+fit1 = smf.ols('Obama2012_z ~ -1 + Obama2008_z', data=pres).fit()
+
+# estimated slope is identical
+fit1.params
+
+# plot using seaborn's built-in lmplot function
+sns.lmplot(
+    data=pres, x='Obama2008_z', y='Obama2012_z', ci=None, truncate=False,
+    height=4, aspect=1.5,
+).set(xlim=(-4, 4), ylim=(-4, 4), 
+      xlabel="Obama's standardized vote share in 2008",
+      ylabel="Obama's standardized vote share in 2012").despine(
+          right=False, top=False) 
+
+'''
+Seaborn's lmplot() is easy to use, but it is tougher to see the regression 
+line's intersection with the x-axis. Setting the truncate argument to False
+extends the regression line a bit past the data range, but only up to the axis
+limits the lmplot() sets internally, not to the axis limits we set manually
+in .set(). 
+'''
+
+# bottom quartile
+((pres['Obama2012_z'] > pres['Obama2008_z'])[
+    (pres['Obama2008_z'] <= pres['Obama2008_z'].quantile(0.25))].mean())
+
+# top quartile
+((pres['Obama2012_z'] > pres['Obama2008_z'])[
+    (pres['Obama2008_z'] >= pres['Obama2008_z'].quantile(0.75))].mean())
+
+# Section 4.2.6: Model Fit
+
 # In progress
+
+
+# --------------- Appendix: Statistical Modeling Considerations -------------- #
+
+'''
+This appendix addresses a few nuances to consider when using the statsmodels 
+module. [In progress] 
+'''
+
+# Section A.1: Interaction with Patsy Module 
+
+# Section A.2: Varibles Names
+
+# Section A.3: Object Oriented Programming (OOP) Workflow
+
