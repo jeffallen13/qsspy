@@ -134,9 +134,9 @@ for i in range(len(st_names)):
 poll_pred.head(10)
 
 '''
-Becuase we stored state names as the index, we could use state names as the 
-loop counter. In complex numeric indexing cases, looping through names can be
-a good alternative.  
+Because we stored the state identifier as the index, we could use states as the 
+loop counter. In complex numeric indexing cases, looping through names can be a 
+good alternative. 
 '''
 
 poll_pred_alt = pd.Series(index=st_names)
@@ -251,8 +251,8 @@ pollsUS08_avg = pd.DataFrame({'Obama': Obama_pred,
 pollsUS08_avg.head()
 
 '''
-Recall from chapter three that plotting groups in seaborn works best when the
-grouping variable is stored in a single column. In this case, the grouping
+Recall from chapter 3 that plotting groups in seaborn works best when the
+grouping variable is stored in its own column. In this case, the grouping
 variable is the candidate. To pivot the candidates into a single column, we
 need to reshape the data into a longer format. 
 '''
@@ -290,7 +290,6 @@ plt.scatter(0, 45.65, color='red', s=100)
 # Section 4.2.1: Facial Appearance and Election Outcomes
 
 # load the data
-
 face = pd.read_csv('face.csv')
 
 # two-party vote share for Democrats and Republicans
@@ -318,9 +317,8 @@ import statsmodels.formula.api as smf
 statsmodels works best when column names do not contain spaces or special
 characters, such as dots. The chapter appendix provides a more in-depth
 discussion about why this is the case and how to use the module if you want to
-retain special characters or spaces in your variable names. For now, though, 
-we will replace the dots in the column names with underscores to prevent any 
-errors. 
+retain special characters or spaces in variable names. For now, though, we will 
+replace the dots in the column names with underscores to prevent any errors. 
 '''
 
 # replace dots in column names with underscores
@@ -364,18 +362,21 @@ plt.axvline(x=0, color='black', linewidth=0.5, linestyle='--')
 
 '''
 Note that seaborn has a built-in function for plotting regression lines, which 
-we'll use later, but it is not as easy to show the regression line's 
-intersection with the x-axis.
+we'll use later, but it is not as easy to show the regression line's intercept.
 '''
 
 epsilon_hat = fit.resid # residuals
 np.sqrt((epsilon_hat**2).mean()) # RMSE
 
-# Section 4.2.4: Regression Torwards the Mean
+# Section 4.2.4: Regression Towards the Mean
 
 # Section 4.2.5: Merging Datasets in Pandas
 
+# load the 2012 data
 pres12 = pd.read_csv('pres12.csv')
+
+# remove poll_pred from pres08
+pres08.drop('poll_pred', axis=1, inplace=True)
 
 # quick look at the two data sets
 pres08.head()
@@ -414,8 +415,8 @@ pres1.iloc[7:9]
 pres.iloc[7:9]
 
 '''
-However, if we moved the state identifier to the index, then pd.concat() 
-would align the indexes correctly, similar to a merge. 
+If we move the state identifier to the index, then concat() will align the 
+indexes correctly. We still have overlapping column names, though. 
 '''
 pres2 = pd.concat([pres08.set_index('state'), 
                    pres12.set_index('state_abb')], axis='columns')
@@ -456,11 +457,9 @@ sns.lmplot(
           right=False, top=False) 
 
 '''
-Seaborn's lmplot() is easy to use, but it is tougher to see the regression 
-line's intersection with the x-axis. Setting the truncate argument to False
-extends the regression line a bit past the data range, but only up to the axis
-limits the lmplot() sets internally, not to the axis limits we set manually
-in .set(). 
+Setting `truncate=False` extends the regression line a bit past the data range, 
+but only up to the axis limits that `lmplot()` sets internally, not to the axis 
+limits we set manually in `.set()`. 
 '''
 
 # bottom quartile
@@ -475,17 +474,16 @@ in .set().
 
 # In progress
 
-
-# --------------- Appendix: Statistical Modeling Considerations -------------- #
+# ------------------- Appendix: statsmodels considerations ------------------- #
 
 '''
 This appendix addresses a few nuances to consider when using the statsmodels 
 module. [In progress] 
 '''
 
-# Section A.1: Interaction with Patsy Module 
+# Section A.1: Interaction with patsy module 
 
-# Section A.2: Varibles Names
+# Section A.2: Varibles names
 
-# Section A.3: Object Oriented Programming (OOP) Workflow
+# Section A.3: Object oriented programming (OOP) workflow
 
