@@ -340,10 +340,10 @@ fit.fittedvalues.head(n=10)
 # store the intercept and slope for plotting a regression line
 intercept, slope = fit.params
 
-# generate 100 evenly spaced values between 0-1
-x_values = np.linspace(0, 1, 100)
+# create a vector for the x-axis limits
+x_values = np.array([0,1])
 
-# using the slope and intercept, predict values over the range of x_values
+# using the slope and intercept, predict y values for the x axis limits
 y_values = intercept + slope * x_values
 
 sns.set_theme(style="whitegrid")
@@ -351,7 +351,8 @@ sns.set_theme(style="whitegrid")
 # plot a scatterplot and overlay a regression line
 sns.relplot(
     data=face, x='d_comp', y='diff_share', height=4, aspect=1.5
-).set(xlim=(-0.02, 1), ylim=(-1, 1), yticks=np.arange(-1.0, 1.5, 0.5),
+).set(ylim=(-1, 1), yticks=np.arange(-1.0, 1.5, 0.5),
+      xlim=(-0.02, 1), # small buffer in left limit for aesthetics
       title='Facial competence and vote share',
       xlabel='Competence scores for Democrats',
       ylabel='Democratic margin in vote share').despine(right=False, top=False)
@@ -472,7 +473,96 @@ limits we set manually in `.set()`.
 
 # Section 4.2.6: Model Fit
 
-# In progress
+florida = pd.read_csv('florida.csv')
+
+# regress Buchanan's 2000 votes on Perot's 1996 votes
+fit2 = smf.ols('Buchanan00 ~ Perot96', data=florida).fit()
+
+fit2.params
+
+# compute TSS (total sum of squares)
+TSS2 = ((florida['Buchanan00'] - florida['Buchanan00'].mean())**2).sum()
+
+# compute SSR (sum of squared residuals)
+SSR2 = (fit2.resid**2).sum()
+
+# Coefficient of determination (R-squared)
+(TSS2 - SSR2) / TSS2
+
+def R2(fit):
+    resid = fit.resid # residuals
+    y = fit.fittedvalues + resid # outcome variable
+    TSS = ((y - y.mean())**2).sum()
+    SSR = (resid**2).sum()
+    R2 = (TSS - SSR) / TSS
+    return R2
+
+R2(fit2)
+
+# built-in statsmodels R2 attribute
+fit2.rsquared
+
+fit1.rsquared
+
+sns.set_theme(style="ticks")
+
+sns.relplot(
+    x=fit2.fittedvalues, y=fit2.resid, height=4, aspect=1.5
+).set(xlabel='Fitted values', ylabel='Residuals', title='Residual plot',
+      xlim=(0,1500), ylim=(-750, 2500))
+
+plt.axhline(y=0, color='black', linestyle='--')
+
+florida['county'][fit2.resid == fit2.resid.max()]
+
+# data without palm beach 
+florida_pb = florida.loc[florida.county != 'PalmBeach'].copy()
+
+fit3 = smf.ols('Buchanan00 ~ Perot96', data=florida_pb).fit()
+
+fit3.params
+
+R2(fit3)
+
+sns.relplot(
+    x=fit3.fittedvalues, y=fit3.resid, height=4, aspect=1.5
+).set(xlabel='Fitted values', ylabel='Residuals', 
+      title='Residual plot without Palm Beach',
+      xlim=(0,1500), ylim=(-750, 2500))
+
+plt.axhline(y=0, color='black', linestyle='--')
+
+
+# plot both regression lines on the same scatterplot
+
+# use seaborn's lmplot() to plot the regression line associated with fit2
+sns.lmplot(
+    data=florida, x='Perot96', y='Buchanan00', ci=None, truncate=False,
+    height=4, aspect=1.5, 
+    line_kws={'color': 'black', 'linestyle': '--', 'linewidth': 0.75},
+).set(xlabel="Perot's votes in 1996", 
+      ylabel="Buchanan's votes in 2000").despine(right=False, top=False)
+
+# store the x-axis limits from the plot
+x_lim = plt.gca().get_xlim()
+
+# store the limits as a data frame with the same column name as the predictor
+# note: we only need two points to plot a regression line
+x_values = pd.DataFrame({'Perot96': x_lim})
+
+# use the fit3 model and the predict method to generate y values
+y_values = fit3.predict(x_values)
+
+# plot the regression line associated with fit3
+plt.plot(x_values, y_values, color='black', linewidth=0.75)
+
+plt.text(x=31500, y=3300, s='Palm Beach')
+plt.text(x=26500, y=1300, s='regression with\nPalm Beach')
+plt.text(x=26500, y=330, s='regression without\nPalm Beach')
+
+# ------------------- Section 4.3: Regression and Causation ------------------ #
+
+# In Progress
 
 # ------------------- Appendix: statsmodels considerations ------------------- #
 
@@ -483,7 +573,7 @@ module. [In progress]
 
 # Section A.1: Interaction with patsy module 
 
-# Section A.2: Varibles names
+# Section A.2: Variable names
 
 # Section A.3: Object oriented programming (OOP) workflow
 
