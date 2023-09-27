@@ -562,6 +562,29 @@ plt.text(x=26500, y=330, s='regression without\nPalm Beach')
 
 # ------------------- Section 4.3: Regression and Causation ------------------ #
 
+# Section 4.3.1: Randomized Experiments
+
+women = pd.read_csv('women.csv')
+
+# proportion of female politicians in reserved GP vs. unreserved GP
+women['female'][women.reserved==1].mean()
+
+women['female'][women.reserved==0].mean()
+
+# drinking water facilities
+(women['water'][women.reserved==1].mean() - 
+ women['water'][women.reserved==0].mean())
+
+# irrigation facilities
+(women['irrigation'][women.reserved==1].mean() - 
+ women['irrigation'][women.reserved==0].mean())
+
+smf.ols('water ~ reserved', data=women).fit().params
+
+smf.ols('irrigation ~ reserved', data=women).fit().params
+
+# Section 4.3.2: Regression with Multiple Predictors
+
 # In Progress
 
 # ------------------- Appendix: statsmodels considerations ------------------- #
