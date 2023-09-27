@@ -16,7 +16,7 @@ values = np.array([2, 4, 6])
 n = len(values) # number of elements in values
 results = np.zeros(n) # empty container vector for storing the results 
 
-# looper counter `i` will take on values 0, 1, ..., n in that order
+# loop counter `i` will take on values 0, 1, ..., n in that order
 for i in range(n):
     # store multiplication results as the ith element of `results` vector
     results[i] = values[i] * 2
@@ -584,6 +584,80 @@ smf.ols('water ~ reserved', data=women).fit().params
 smf.ols('irrigation ~ reserved', data=women).fit().params
 
 # Section 4.3.2: Regression with Multiple Predictors
+
+social = pd.read_csv('social.csv')
+
+# convert messages to categorical with Control as the reference category
+
+cats = ['Control', 'Civic Duty', 'Hawthorne', 'Neighbors']
+
+social['messages'] = (social['messages'].astype('category').
+                      cat.reorder_categories(cats))
+
+social['messages'].cat.categories
+
+social['messages'].value_counts()
+
+fit = smf.ols('primary2006 ~ messages', data=social).fit()
+
+fit.params
+
+# create indicator variables
+social['Civic_Duty'] = np.where(social['messages']=='Civic Duty', 1, 0)
+social['Hawthorne'] = np.where(social['messages']=='Hawthorne', 1, 0)
+social['Neighbors'] = np.where(social['messages']=='Neighbors', 1, 0)
+
+# an alternative using pandas get_dummies method
+dummies = (pd.get_dummies(social['messages'], drop_first=True, dtype='int').
+           rename(columns={'Civic Duty': 'Civic_Duty'}))
+
+social[['Civic_Duty', 'Hawthorne', 'Neighbors']].equals(dummies)
+
+# fit the same regression as above using the indicator variables
+smf.ols('primary2006 ~ Civic_Duty + Hawthorne + Neighbors', 
+        data=social).fit().params
+
+# create a data frame with unique values of messages
+unique_messages = pd.DataFrame({'messages': social['messages'].cat.categories})
+
+unique_messages
+
+# make prediction for each observation from the new data frame
+fit.predict(unique_messages)
+
+# sample average
+social.groupby('messages')['primary2006'].mean()
+
+# linear regression without intercept
+fit_noint = smf.ols('primary2006 ~ -1 + messages', data=social).fit()
+
+fit_noint.params
+
+# estimated average effect of Neighbors condition
+fit.params['messages[T.Neighbors]'].round(7)
+
+# difference in means
+(social['primary2006'][social['messages']=='Neighbors'].mean() - 
+ social['primary2006'][social['messages']=='Control'].mean()).round(7)
+
+# adjusted Rsqure
+def adjR2(fit):
+    resid = fit.resid # residuals
+    y = fit.fittedvalues + resid # outcome variable
+    n = len(y)
+    p = len(fit.params)
+    TSS_adj = ((y - y.mean())**2).sum() / (n - 1)
+    SSR_adj = (resid**2).sum() / (n - p)
+    R2_adj = 1 - SSR_adj / TSS_adj
+    return R2_adj
+
+adjR2(fit).round(7)
+
+R2(fit).round(7) # unadjusted Rsquare calculation
+
+fit.rsquared_adj.round(7)
+
+# Section 4.3.3: Heterogeneous Treatment Effects
 
 # In Progress
 
