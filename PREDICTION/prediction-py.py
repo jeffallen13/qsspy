@@ -659,6 +659,116 @@ fit.rsquared_adj.round(7)
 
 # Section 4.3.3: Heterogeneous Treatment Effects
 
+# average treatment effect (ATE) among those who voted in 2004 primary
+social_voter = social.loc[social['primary2004']==1].copy()
+
+ate_voter = (
+    social_voter['primary2006'][social_voter['messages']=='Neighbors'].mean() 
+    - social_voter['primary2006'][social_voter['messages']=='Control'].mean()
+)
+
+ate_voter
+
+# ATE among those who did not vote in 2004 primary
+social_nonvoter = social.loc[social['primary2004']==0].copy()
+
+ate_nonvoter = (
+    social_nonvoter['primary2006'][social_nonvoter['messages']=='Neighbors'].
+    mean() - 
+    social_nonvoter['primary2006'][social_nonvoter['messages']=='Control'].
+    mean()
+)
+
+ate_nonvoter
+
+# difference
+ate_voter - ate_nonvoter
+
+# subset neighbors and control groups
+social_neighbor = (
+    social.loc[social['messages'].isin(['Control', 'Neighbors'])].copy()
+)
+
+# re-encode the categorical variable to remove original levels
+social_neighbor['messages'] = (
+    social_neighbor['messages'].astype('object').astype('category')
+)
+
+# standard way to generate main and interaction effects
+fit_int = smf.ols(
+    'primary2006 ~ primary2004 + messages + primary2004:messages',
+    data=social_neighbor).fit()
+
+fit_int.params
+
+social_neighbor['age'] = 2006 - social_neighbor['yearofbirth']
+
+social_neighbor['age'].describe().round(2)
+
+fit_age = smf.ols('primary2006 ~ age * messages', data=social_neighbor).fit()
+
+fit_age.params
+
+# age = 25, 45, 65, 85 in Neighbors group
+age_neighbor = pd.DataFrame({'age': np.arange(25, 86, 20), 
+                             'messages': 'Neighbors'})
+
+# age = 25, 45, 65, 85 in Control group
+age_control = pd.DataFrame({'age': np.arange(25, 86, 20), 
+                            'messages': 'Control'})
+
+# average treatment effect for age = 25, 45, 65, 85
+ate_age = fit_age.predict(age_neighbor) - fit_age.predict(age_control)
+
+ate_age
+
+fit_age2 = smf.ols(
+    # note: concatenate two strings with '+'
+    'primary2006 ~ age + I(age**2) + messages + age:messages + ' + 
+    'I(age**2):messages', data=social_neighbor).fit()
+
+fit_age2.params
+
+# predict turnout rate under the Neighbors treatment condition
+yT_hat = fit_age2.predict(pd.DataFrame({'age': np.arange(25, 86), 
+                                        'messages': 'Neighbors'}))
+
+# predict turnout rate under the Control condition
+yC_hat = fit_age2.predict(pd.DataFrame({'age': np.arange(25, 86), 
+                                        'messages': 'Control'}))
+
+# save ATE 
+ate_age2 = yT_hat - yC_hat
+
+ate_age2.head()
+
+# create subplots
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# plotting the predicted turnout rate under each condition
+sns.lineplot(
+    x=np.arange(25, 86), y=yT_hat, color='black', linewidth=0.75, ax=axs[0]
+).set(xlabel='Age', ylabel='Predicted turnout rate', 
+      xlim=(20, 90), ylim=(0, 0.5))
+
+sns.lineplot(
+    x=np.arange(25, 86), y=yC_hat, color='black', linewidth=0.75, 
+    linestyle='--', ax=axs[0]
+)
+
+# add text labels
+axs[0].text(x=25, y=0.41, s='Neighbors condition', color='black')
+axs[0].text(x=40, y=0.23, s='Control condition', color='black')
+
+# plotting the average treatment effect as a function of age
+sns.lineplot(
+    x=np.arange(25, 86), y=ate_age2, color='black', linewidth=0.75, ax=axs[1]
+).set(xlabel='Age', ylabel='Estimated average treatment effect', 
+      xlim=(20, 90), ylim=(0, 0.1))
+
+
+# Section 4.3.4: Regression Discontinuity Design
+
 # In Progress
 
 # ------------------- Appendix: statsmodels considerations ------------------- #
