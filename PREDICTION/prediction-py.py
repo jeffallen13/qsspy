@@ -313,14 +313,6 @@ face['d.comp'].corr(face['diff_share'])
 # import the statsmodels formula API
 import statsmodels.formula.api as smf
 
-'''
-statsmodels works best when column names do not contain spaces or special
-characters, such as dots. The chapter appendix provides a more in-depth
-discussion about why this is the case and how to use the module if you want to
-retain special characters or spaces in variable names. For now, though, we will 
-replace the dots in the column names with underscores to prevent any errors. 
-'''
-
 # replace dots in column names with underscores
 face.columns = face.columns.str.replace('.', '_')
 
@@ -769,18 +761,98 @@ sns.lineplot(
 
 # Section 4.3.4: Regression Discontinuity Design
 
-# In Progress
+# load the data
+MPs = pd.read_csv('MPs.csv')
 
-# ------------------- Appendix: statsmodels considerations ------------------- #
+MPs.columns
 
-'''
-This appendix addresses a few nuances to consider when using the statsmodels 
-module. [In progress] 
-'''
+# replace dots in column names with underscores
+MPs.columns = MPs.columns.str.replace('.', '_')
 
-# Section A.1: Interaction with patsy module 
+MPs.columns
 
-# Section A.2: Variable names
+# subset the data into two parties 
+MPs_labour = MPs.loc[MPs['party']=='labour'].copy()
 
-# Section A.3: Object oriented programming (OOP) workflow
+MPs_tory = MPs.loc[MPs['party']=='tory'].copy()
 
+# two regressions for Labour: negative and positive margin
+labour_fit1 = smf.ols('ln_net ~ margin', 
+                      data=MPs_labour[MPs_labour.margin < 0]).fit()
+
+labour_fit2 = smf.ols('ln_net ~ margin', 
+                      data=MPs_labour[MPs_labour.margin > 0]).fit()
+
+# two regressions for Tory: negative and positive margin
+tory_fit1 = smf.ols('ln_net ~ margin', 
+                    data=MPs_tory[MPs_tory.margin < 0]).fit()
+
+tory_fit2 = smf.ols('ln_net ~ margin',
+                    data=MPs_tory[MPs_tory.margin > 0]).fit()
+
+# Labour: range of predictions
+y1l_range = np.array([MPs_labour['margin'].min(), 0])
+y2l_range = np.array([0, MPs_labour['margin'].max()])
+
+# prediction: Labor
+y1_labour = labour_fit1.predict(pd.DataFrame({'margin': y1l_range}))
+y2_labour = labour_fit2.predict(pd.DataFrame({'margin': y2l_range}))
+
+# Tory: range of predictions
+y1t_range = np.array([MPs_tory['margin'].min(), 0])
+y2t_range = np.array([0, MPs_tory['margin'].max()])
+
+# prediction: Tory
+y1_tory = tory_fit1.predict(pd.DataFrame({'margin': y1t_range}))
+y2_tory = tory_fit2.predict(pd.DataFrame({'margin': y2t_range}))
+
+
+# Plot comparison 
+sns.set_theme(style="whitegrid")
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# scatterplot with regression lines for labour
+sns.scatterplot(
+    data=MPs_labour, x='margin', y='ln_net', color='gray', ax=axs[0]
+).set(xlim=(-0.5, 0.5), ylim=(6, 18), xlabel='Margin of victory', 
+      ylabel='Log of net wealth at death', title='Labour')
+
+axs[0].axvline(x=0, color='black', linestyle='--', linewidth=0.75)
+
+# add regression lines
+axs[0].plot(y1l_range, y1_labour, color='blue')
+axs[0].plot(y2l_range, y2_labour, color='blue')
+
+# scatterplot with regression lines for tory
+sns.scatterplot(
+    data=MPs_tory, x='margin', y='ln_net', color='gray', ax=axs[1]
+).set(xlim=(-0.5, 0.5), ylim=(6, 18), xlabel='Margin of victory', 
+      ylabel='Log of net wealth at death', title='Tory')
+
+axs[1].axvline(x=0, color='black', linestyle='--', linewidth=0.75)
+
+# add regression lines
+axs[1].plot(y1t_range, y1_tory, color='blue')
+axs[1].plot(y2t_range, y2_tory, color='blue')
+
+# average net wealth for Tory MP
+tory_MP = np.exp(y2_tory[0])
+tory_MP.round(2)
+
+# average net wealth for Tory non-MP
+tory_nonMP = np.exp(y1_tory[1])
+tory_nonMP.round(2)
+
+# causal effects in pounds
+(tory_MP - tory_nonMP).round(2)
+
+# two regressions for Tory: negative and positive margin
+tory_fit3 = smf.ols('margin_pre ~ margin', 
+                    data=MPs_tory[MPs_tory.margin < 0]).fit()
+
+tory_fit4 = smf.ols('margin_pre ~ margin',
+                    data=MPs_tory[MPs_tory.margin > 0]).fit()
+
+# the difference between the two incercepts is the estimated effect
+tory_fit4.params['Intercept'] - tory_fit3.params['Intercept']
