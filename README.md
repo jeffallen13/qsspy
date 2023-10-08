@@ -4,7 +4,7 @@ Welcome! This repository contains Python companion guides for Kosuke Imai's [Qua
 
 The repository is modeled after the [QSS GitHub repository](https://github.com/kosukeimai/qss), which contains base R and tidyverse code for the original and [tidyverse](https://press.princeton.edu/books/hardcover/9780691222271/quantitative-social-science) editions of QSS, along with the datasets that are analyzed in book. 
 
-The python scripts are available in the following file formats: .py, .ipynb, and .pdf. 
+The python scripts are available in the following file formats: `.py`, `.ipynb`, and `.pdf`. The `.py` files are best for copying and running the code locally. The`.ipynb` files offer the best web-based viewing experience, including on GitHub. Just be sure to view them in Preview (rather than Code) mode. The `.pdf` files are best for printing. 
 
 ## Development Status
 
@@ -22,11 +22,15 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 
 ## Setup
 
-Chapter 1 will include guidance on setting up a Python analytical environment. In the meantime, below are some recommendations for getting started.
+The companion guides focus on replicating the QSS analysis in Python. Currently, they do not contain detailed instructions on setting up a Python environment. Fortunately, there are many excellent and free resources available online that provide guidance in this respect. Below are a few recommendations.
 
 ### Installation and Packages
 
-I recommend following the [Installation and Setup](https://wesmckinney.com/book/preliminaries#installation_and_setup) instructions in Wes McKinney's [Python for Data Analysis, 3E](https://wesmckinney.com/book/). The instructions include guidance on installing [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) and installing packages from [conda-forge](https://conda-forge.org/).
+I recommend following the [Installation and Setup](https://wesmckinney.com/book/preliminaries#installation_and_setup) instructions in Wes McKinney's [Python for Data Analysis, 3E](https://wesmckinney.com/book/). The instructions walk readers through a few important steps: 
+
+- Installing Python via [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) 
+- Working with [conda environments](https://conda.io/projects/conda/en/latest/user-guide/index.html)
+- Installing packages from the [conda-forge](https://conda-forge.org/) channel
 
 The companion guides use the following packages extensively:
 
@@ -36,6 +40,12 @@ The companion guides use the following packages extensively:
 - [seaborn](https://seaborn.pydata.org/)
 - [statsmodels](https://www.statsmodels.org/stable/index.html)
 - [scikit-learn](https://scikit-learn.org/stable/)
+
+The installation and package management approach outlined above is one among many options. Other popular ways to install Python and manage packages include: 
+
+- Installing Python from the [Python Software Foundation](https://www.python.org/downloads/), using the [pip](https://pip.pypa.io/en/stable/) package manager to install packages from the [Python Package Index](https://pypi.org/) (PyPI), and managing packages with Python [virtual environments](https://docs.python.org/3/tutorial/venv.html). This approach is similar to installing miniconda and using conda, conda-forge, and conda environments. Note that these approaches are not mutually exclusive. For example, you can use pip to install packages from PyPI into a conda environment.
+- Installing an [Anaconda](https://www.anaconda.com/) distribution of Python. Anaconda comes pre-loaded with many data analysis packages, including those listed above. Anaconda offers a free [individual version](https://www.anaconda.com/pricing/individuals/). 
+- Using container-based approaches, such as [Docker](https://www.docker.com/). This is a more advanced workflow that is widely used for deploying applications. 
 
 ### Integrated Development Environments
 
