@@ -4,7 +4,7 @@ Welcome! This repository contains Python companion guides for Kosuke Imai's [Qua
 
 The repository is modeled after the [QSS GitHub repository](https://github.com/kosukeimai/qss), which contains base R and tidyverse code for the original and [tidyverse](https://press.princeton.edu/books/hardcover/9780691222271/quantitative-social-science) editions of QSS, along with the datasets that are analyzed in book. 
 
-The python scripts are available in the following file formats: `.py`, `.ipynb`, and `.pdf`. The `.py` files are best for copying and running the code locally. The`.ipynb` files offer the best web-based viewing experience, including on GitHub. Just be sure to view them in Preview (rather than Code) mode. The `.pdf` files are best for printing. 
+The python scripts are available in the following file formats: `.py`, `.ipynb`, and `.pdf`. The `.py` files are best for copying and running the code locally. The`.ipynb` files offer the best web-based viewing experience, including on GitHub. The `.pdf` files are best for printing. 
 
 ## Development Status
 
