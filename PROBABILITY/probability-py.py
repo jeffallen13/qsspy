@@ -160,4 +160,71 @@ joint3.loc[('black', 4), 'f'] / joint2.loc[4, 'f']
 
 # Section 6.2.2: Independence 
 
+# store plotting parameters
+lims = (-0.02, 0.42)
+ticks = [0, .1, .2, .3, .4]
+
+sns.relplot(
+    x=margin_race * margin_gender['f'], y=joint_p['f'],
+    color='white', edgecolor='black', height=4, aspect=1.5
+).set(xlabel='P(race) * P(female)', ylabel='P(race and female)',
+      xlim=lims, ylim=lims, xticks=ticks, yticks=ticks).despine(
+          right=False, top=False)
+
+plt.gca().axline((0, 0), slope=1, color='black', linewidth=0.5)
+
+# subplots for joint and conditional independence
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+lims = (-0.02, 0.32)
+
+# joint independence
+sns.scatterplot(
+    x=joint3.loc[(slice(None), 4), 'f'].droplevel('age_group'), 
+    y=margin_race * margin_age[4] * margin_gender['f'],
+    color='white', edgecolor='black', ax=axs[0]
+).set(xlabel='P(race and above 60 and female)', 
+      ylabel='P(race) * P(above 60) * P(female)',
+      title='Joint Independence', xlim=lims, ylim=lims)
+
+axs[0].axline((0, 0), slope=1, color='black', linewidth=0.5)
+
+# conditional independence given female
+sns.scatterplot(
+    x=(joint3.loc[(slice(None), 4), 'f'] / 
+       margin_gender['f']).droplevel('age_group'), 
+    y=((joint_p['f'] / margin_gender['f']) * 
+       (joint2.loc[4, 'f'] / margin_gender['f'])),
+    color='white', edgecolor='black', ax=axs[1]
+).set(xlabel='P(race and above 60 | female)', 
+      ylabel='P(race | female) * P(above 60 | female)',
+      title='Conditional Independence', xlim=lims, ylim=lims)
+
+axs[1].axline((0, 0), slope=1, color='black', linewidth=0.5)
+
+# Monty Hall problem
+sims = 1000
+doors = np.array(['goat', 'goat', 'car'])
+# Store empty vector of strings with same dtype as doors
+result_switch = np.empty(sims, dtype=doors.dtype)
+result_noswitch = np.empty(sims, dtype=doors.dtype)
+
+for i in range(sims):
+    # randomly choose the initial door
+    first = np.random.choice(np.arange(0,3))
+    result_noswitch[i] = doors[first]
+    remain = np.delete(doors, first) # remaining two doors
+    if doors[first] == 'car': # two goats left
+        monty = np.random.choice(np.arange(0,2))
+    else: # one goat and one car left
+        monty = np.arange(0,2)[remain=='goat']
+    result_switch[i] = np.delete(remain, monty)[0]
+
+(result_noswitch == 'car').mean()
+(result_switch == 'car').mean()
+
+# Section 6.2.3: Bayes' Rule
+
+# Section 6.2.4: Predicting Race Using Surname and Residence Location
+
 # In Progress
