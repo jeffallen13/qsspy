@@ -227,4 +227,162 @@ for i in range(sims):
 
 # Section 6.2.4: Predicting Race Using Surname and Residence Location
 
+cnames = pd.read_csv('names.csv')
+
+cnames.info() # one surname is missing
+
+# As with FLVoters, ensure the surname "NULL" is treated as a string
+cnames['surname'] = np.where(
+    cnames['surname'].isnull(), 'NULL', cnames['surname'])
+
+cnames.shape
+
+# merge the two data frames (inner join)
+FLVoters = pd.merge(FLVoters, cnames, on='surname')
+
+FLVoters.shape
+
+# store relevant variables
+vars = ["pctwhite", "pctblack", "pctapi", "pcthispanic", "pctothers"]
+
+# Whites 
+whites = FLVoters.loc[FLVoters.race == 'white'].copy()
+(whites[vars].max(axis='columns') == whites['pctwhite']).mean()
+
+# Blacks
+blacks = FLVoters.loc[FLVoters.race == 'black'].copy()
+(blacks[vars].max(axis='columns') == blacks['pctblack']).mean()
+
+# Hispanics
+hispanics = FLVoters.loc[FLVoters.race == 'hispanic'].copy()
+(hispanics[vars].max(axis='columns') == hispanics['pcthispanic']).mean()
+
+# Asian
+asians = FLVoters.loc[FLVoters.race == 'asian'].copy()
+(asians[vars].max(axis='columns') == asians['pctapi']).mean()
+
+# White false discovery rate 
+1 - (FLVoters['race'][FLVoters[vars].max(axis='columns') == 
+                      FLVoters['pctwhite']] == "white").mean()
+
+# Black false discovery rate
+1 - (FLVoters['race'][FLVoters[vars].max(axis='columns') == 
+                      FLVoters['pctblack']] == "black").mean()
+
+# Hispanic false discovery rate
+1 - (FLVoters['race'][FLVoters[vars].max(axis='columns') == 
+                      FLVoters['pcthispanic']] == "hispanic").mean()
+
+# Asian false discovery rate
+1 - (FLVoters['race'][FLVoters[vars].max(axis='columns') == 
+                      FLVoters['pctapi']] == "asian").mean()
+
+FLCensus = pd.read_csv('FLCensusVTD.csv')
+
+# compute proportions by applying np.average to each column with pop weight
+census_race = ['white', 'black', 'api', 'hispanic', 'others']
+
+race_prop = FLCensus[census_race].apply(
+    lambda x: np.average(x, weights=FLCensus['total.pop']))
+
+race_prop # race proportions in Florida
+
+# store total count from original cnames data
+total_count = cnames['count'].sum()
+
+# P(surname | race) = P(race | surname) * P(surname) / P(race) in Florida
+FLVoters['name_white'] = (
+       (FLVoters['pctwhite'] / 100) * (FLVoters['count'] / total_count) /
+       race_prop['white'])
+
+FLVoters['name_black'] = (
+       (FLVoters['pctblack'] / 100) * (FLVoters['count'] / total_count) /
+       race_prop['black'])
+
+FLVoters['name_hispanic'] = (
+       (FLVoters['pcthispanic'] / 100) * (FLVoters['count'] / total_count) /
+       race_prop['hispanic'])
+
+FLVoters['name_asian'] = (
+       (FLVoters['pctapi'] / 100) * (FLVoters['count'] / total_count) /
+       race_prop['api'])
+
+FLVoters['name_others'] = (
+       (FLVoters['pctothers'] / 100) * (FLVoters['count'] / total_count) /
+       race_prop['others'])
+
+# merge FLVoters with FLCensus by county and VTD using left join
+FLVoters = pd.merge(FLVoters, FLCensus, on=['county', 'VTD'], how='left')
+
+# P(surname | residence) = sum_race P(surname | race) P(race | residence)
+FLVoters['name_residence'] = (
+    FLVoters['name_white'] * FLVoters['white'] + 
+    FLVoters['name_black'] * FLVoters['black'] + 
+    FLVoters['name_hispanic'] * FLVoters['hispanic'] + 
+    FLVoters['name_asian'] * FLVoters['api'] + 
+    FLVoters['name_others'] * FLVoters['others'])
+
+'''
+P(race | surname, residence) = P(surname | race) * P(race | residence) /
+P(surname | residence)
+'''
+
+FLVoters['pre_white'] = (FLVoters.name_white * FLVoters.white / 
+                         FLVoters.name_residence)
+
+FLVoters['pre_black'] = (FLVoters.name_black * FLVoters.black /
+                         FLVoters.name_residence)
+
+FLVoters['pre_hispanic'] = (FLVoters.name_hispanic * FLVoters.hispanic /
+                            FLVoters.name_residence)
+
+FLVoters['pre_asian'] = (FLVoters.name_asian * FLVoters.api /
+                         FLVoters.name_residence)
+
+FLVoters['pre_others'] = (1 - FLVoters.pre_white - FLVoters.pre_black -
+                          FLVoters.pre_hispanic - FLVoters.pre_asian)
+
+# relevant variables
+vars1 = ['pre_white', 'pre_black', 'pre_hispanic', 'pre_asian', 'pre_others']
+
+# Whites 
+whites = FLVoters.loc[FLVoters.race == 'white'].copy()
+(whites[vars1].max(axis='columns') == whites['pre_white']).mean()
+
+# Blacks
+blacks = FLVoters.loc[FLVoters.race == 'black'].copy()
+(blacks[vars1].max(axis='columns') == blacks['pre_black']).mean()
+
+# Hispanics
+hispanics = FLVoters.loc[FLVoters.race == 'hispanic'].copy()
+(hispanics[vars1].max(axis='columns') == hispanics['pre_hispanic']).mean()
+
+# Asians
+asians = FLVoters.loc[FLVoters.race == 'asian'].copy()
+(asians[vars1].max(axis='columns') == asians['pre_asian']).mean()
+
+# proportion of blacks among those with surname "White"
+cnames['pctblack'][cnames.surname == "WHITE"]
+
+# predicted probability of being black given residence location 
+FLVoters['pre_black'][FLVoters.surname == "WHITE"].describe()
+
+# whites
+1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
+                      FLVoters['pre_white']] == "white").mean()
+
+# Black false discovery rate
+1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
+                      FLVoters['pre_black']] == "black").mean()
+
+# Hispanic false discovery rate
+1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
+                      FLVoters['pre_hispanic']] == "hispanic").mean()
+
+# Asian false discovery rate
+1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
+                      FLVoters['pre_asian']] == "asian").mean()
+
+# -------- Section 6.3: Random Variables and Probability Distributions ------- #
+
 # In Progress
