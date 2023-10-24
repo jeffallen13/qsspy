@@ -40,6 +40,7 @@ The companion guides use the following packages extensively:
 - [seaborn](https://seaborn.pydata.org/)
 - [statsmodels](https://www.statsmodels.org/stable/index.html)
 - [scikit-learn](https://scikit-learn.org/stable/)
+- [scipy](https://www.scipy.org/)
 
 The installation and package management approach outlined above is one among many options. Other popular ways to install Python and manage packages include: 
 
