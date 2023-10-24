@@ -367,22 +367,59 @@ cnames['pctblack'][cnames.surname == "WHITE"]
 # predicted probability of being black given residence location 
 FLVoters['pre_black'][FLVoters.surname == "WHITE"].describe()
 
-# whites
+# Whites
 1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
                       FLVoters['pre_white']] == "white").mean()
 
-# Black false discovery rate
+# Blacks
 1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
                       FLVoters['pre_black']] == "black").mean()
 
-# Hispanic false discovery rate
+# Hispanics
 1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
                       FLVoters['pre_hispanic']] == "hispanic").mean()
 
-# Asian false discovery rate
+# Asians
 1 - (FLVoters['race'][FLVoters[vars1].max(axis='columns') == 
                       FLVoters['pre_asian']] == "asian").mean()
 
 # -------- Section 6.3: Random Variables and Probability Distributions ------- #
 
-# In Progress
+# Section 6.3.1: Random Variables
+
+# Section 6.3.2: Bernoulli and Uniform Distributions
+
+from scipy import stats
+
+# uniform PDF: x = 0.5, interval = [0,1]
+stats.uniform.pdf(x=0.5, loc=0, scale=1) # loc = a, scale = b-a
+
+# uniform CDF: x = 1, interval = [-2, 2]
+a = -2
+b = 2
+stats.uniform.cdf(x=1, loc=a, scale=b-a)
+
+sims = 1000
+p = 0.5 # success probabilities
+x = stats.uniform.rvs(size=sims, loc=0, scale=1)
+type(x) # a numpy array
+x[:6]
+
+y = (x <= p).astype(int)
+y[:6]
+
+y.mean() # close to success probability p, proportion of 1's vs. 0's
+
+# Section 6.3.3: Binomial Distribution
+
+# PMF: k = 2, n = 3, p = 0.5
+stats.binom.pmf(k=2, n=3, p=0.5)
+
+# CDF: k = 1, n = 3, p = 0.5
+stats.binom.cdf(k=1, n=3, p=0.5)
+
+# number of voters who turn out 
+voters = np.array([1000, 10000, 100000])
+stats.binom.pmf(voters/2, n=voters, p=0.5)
+
+# Section 6.3.4: Normal Distribution
