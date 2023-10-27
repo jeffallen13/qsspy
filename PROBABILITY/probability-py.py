@@ -478,7 +478,7 @@ e_zscore = e / np.std(e, ddof=1)
 
 ## First, calculate some inputs for the plots
 x = np.arange(-3, 3, 0.01)
-y = stats.norm.pdf(x) # PDF of x
+x_pdf = stats.norm.pdf(x) # PDF of x
 
 ## Find quantiles for Q-Q plot using scipy.stats.probplot
 quantiles = stats.probplot(e_zscore)
@@ -493,7 +493,7 @@ sns.histplot(e_zscore, stat='density', color='gray', ax=axs[0]).set(
     title='Distribution of Standardized Residuals')
 
 # Overlay the normal density 
-sns.lineplot(x=x, y=y, color='black', ax=axs[0])
+sns.lineplot(x=x, y=x_pdf, color='black', ax=axs[0])
 
 # Q-Q plot
 sns.scatterplot(x=osm, y=osr, color='gray', ax=axs[1]).set(
@@ -530,5 +530,13 @@ TX_mean2012
 1 - stats.norm.cdf(TX_2008, loc=TX_mean2012, scale=e_sd)
 
 # Section 6.3.5: Expectation and Variance
+
+# theoretical variance: p was set to 0.5 earlier
+p * (1-p)
+
+# sample variance using 'y' generated earlier through simulation
+y.var(ddof=1)
+
+# Section 6.3.6: Predicting Election Outcomes with Uncertainty
 
 # In Progress
