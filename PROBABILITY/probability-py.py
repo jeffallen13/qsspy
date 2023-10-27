@@ -423,3 +423,112 @@ voters = np.array([1000, 10000, 100000])
 stats.binom.pmf(voters/2, n=voters, p=0.5)
 
 # Section 6.3.4: Normal Distribution
+
+# plus minus 1 standard deviation from the mean
+stats.norm.cdf(1) - stats.norm.cdf(-1)
+
+# plus minus 2 standard deviations from the mean
+stats.norm.cdf(2) - stats.norm.cdf(-2)
+
+mu = 5
+sigma = 2
+
+# plus minus 1 standard deviation from the mean
+(stats.norm.cdf(mu + sigma, loc=mu, scale=sigma) - 
+ stats.norm.cdf(mu - sigma, loc=mu, scale=sigma))
+
+# plus minus 2 standard deviations from the mean
+(stats.norm.cdf(mu + 2*sigma, loc=mu, scale=sigma) - 
+ stats.norm.cdf(mu - 2*sigma, loc=mu, scale=sigma))
+
+# Replicate model from 4.2.5
+pres08 = pd.read_csv('pres08.csv')
+
+# import pres12 from the PREDICTION folder
+pres12 = pd.read_csv('../PREDICTION/pres12.csv')
+
+# merge the two elections by state
+pres = pd.merge(pres08, pres12, on='state')
+
+# Use the scipy zscore function to standardize Obama's vote share
+# Set ddof=1 to ensure the standard deviation denominator is n-1
+pres['Obama2008_z'] = stats.zscore(pres['Obama_x'], ddof=1)
+pres['Obama2012_z'] = stats.zscore(pres['Obama_y'], ddof=1)
+
+'''
+Note: In chapter 4, we built a function to calculate the z-score, which used
+the pandas .std() method. The default ddof=1 for the pandas method. By 
+contrast, the default ddof=0 for the numpy std function and the scipy zscore 
+function.
+'''
+
+import statsmodels.formula.api as smf
+
+fit1 = smf.ols('Obama2012_z ~ -1 + Obama2008_z', data=pres).fit()
+
+e = fit1.resid
+
+# z-score of residuals
+e_zscore = stats.zscore(e, ddof=1) 
+
+# alternatively, we can divide the residuals by the standard deviation
+e_zscore = e / np.std(e, ddof=1)
+
+# Plot a histogram and Q-Q plot of the standardized residuals
+
+## First, calculate some inputs for the plots
+x = np.arange(-3, 3, 0.01)
+y = stats.norm.pdf(x) # PDF of x
+
+## Find quantiles for Q-Q plot using scipy.stats.probplot
+quantiles = stats.probplot(e_zscore)
+osm = quantiles[0][0] # ordered statistic medians (theoretical quantiles)
+osr = quantiles[0][1] # ordered statistic ranks (sample quantiles)
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# Histogram of residuals
+sns.histplot(e_zscore, stat='density', color='gray', ax=axs[0]).set(
+    xlabel='Standardized residuals',
+    title='Distribution of Standardized Residuals')
+
+# Overlay the normal density 
+sns.lineplot(x=x, y=y, color='black', ax=axs[0])
+
+# Q-Q plot
+sns.scatterplot(x=osm, y=osr, color='gray', ax=axs[1]).set(
+    xlabel='Theoretical quantiles', ylabel='Sample quantiles',
+    title='Normal Q-Q Plot', xlim=(-3.2, 3.2), ylim=(-3.2, 3.2))
+
+# 45-degree line
+axs[1].axline((0, 0), slope=1, color='black', linestyle='--')
+
+'''
+Note that we could have used `probplot` to create a Q-Q plot directly by 
+passing a plot or an axis to the `plot` argument. However, obtaining the 
+quantiles enables us to customize the plot a bit more.
+'''
+
+# e is a pandas series; we can use the pandas .std() method
+e_sd = e.std()
+e_sd
+
+CA_2008 = pres['Obama2008_z'][pres['state'] == 'CA']
+CA_2008
+
+# CA_2008 is a series with index 4; extract the value using .iloc
+CA_mean2012 = fit1.params * CA_2008.iloc[0]
+CA_mean2012
+
+# area to the right; greater than CA_2008
+1 - stats.norm.cdf(CA_2008, loc=CA_mean2012, scale=e_sd)
+
+TX_2008 = pres['Obama2008_z'][pres['state'] == 'TX']
+TX_mean2012 = fit1.params * TX_2008.iloc[0]
+TX_mean2012
+
+1 - stats.norm.cdf(TX_2008, loc=TX_mean2012, scale=e_sd)
+
+# Section 6.3.5: Expectation and Variance
+
+# In Progress
