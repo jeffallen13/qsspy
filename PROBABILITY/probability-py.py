@@ -477,7 +477,7 @@ e_zscore = e / np.std(e, ddof=1)
 # Plot a histogram and Q-Q plot of the standardized residuals
 
 ## First, calculate some inputs for the plots
-x = np.arange(-3, 3, 0.01)
+x = np.arange(-3, 3.01, 0.01)
 x_pdf = stats.norm.pdf(x) # PDF of x
 
 ## Find quantiles for Q-Q plot using scipy.stats.probplot
@@ -539,4 +539,122 @@ y.var(ddof=1)
 
 # Section 6.3.6: Predicting Election Outcomes with Uncertainty
 
-# In Progress
+# two party vote share
+pres08['p'] = pres08['Obama'] / (pres08['Obama'] + pres08['McCain'])
+
+n_states = pres08.shape[0]
+n = 1000
+sims = 10000
+
+# Obama's electoral votes
+Obama_ev = np.zeros(sims)
+
+for i in range(sims):
+    # samples number of votes for Obama in each state
+    draws = stats.binom.rvs(1000, p=pres08.p, size=n_states)
+    # sums state's electoral college votes if Obama wins the majority
+    Obama_ev[i] = pres08.EV[draws > n/2].sum()
+
+
+sns.displot(
+    Obama_ev, stat='density', color='white', edgecolor='black',
+    height=4, aspect=1.5, bins=20,
+).set(title='Prediction of election outcome',
+      xlabel='Obama electoral college votes')
+
+plt.axvline(364, color='red') # actual result 
+
+pd.Series(Obama_ev).describe().round(2)
+
+Obama_ev.mean()
+
+# probability of binomial random variable taking greater than n/2 votes
+(pres08['EV'] * (1 - stats.binom.cdf(n/2, n=n, p=pres08.p))).sum()
+
+# approximate variance using Monte Carlo draws
+Obama_ev.var(ddof=1)
+
+# theoretical variance
+pres08['pb'] = (1 - stats.binom.cdf(n/2, n=n, p=pres08.p))
+
+V = (pres08['pb'] * (1 - pres08['pb']) * pres08['EV'] ** 2).sum()
+V
+
+# approximate standard deviation using Monte Carlo draws
+Obama_ev.std(ddof=1)
+
+# theoretical standard deviation
+np.sqrt(V)
+
+# -------------------- Section 6.4: Large Sample Theorems -------------------- #
+
+# Section 6.4.1: The Law of Large Numbers
+
+sims = 1000
+
+x_binom = stats.binom.rvs(n=10, p=0.2, size=sims)
+
+# computing sample mean with varying sample size
+mean_binom = x_binom.cumsum() / np.arange(1, sims+1)
+
+# default uniform.rvs is uniform(0, 1)
+x_unif = stats.uniform.rvs(size=sims)
+mean_unif = x_unif.cumsum() / np.arange(1, sims+1)
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+# plot for binomial
+sns.lineplot(
+    x=np.arange(1, sims+1), y=mean_binom, ax=axs[0], 
+    color='black', linewidth=0.75
+).set(title='Binomial(10, 0.2)', xlabel='Sample size', ylabel='Sample mean',
+      ylim=(1,3))
+
+axs[0].axhline(2, color='red', linestyle='--', linewidth=0.75)
+
+# plot for uniform 
+sns.lineplot(
+    x=np.arange(1, sims+1), y=mean_unif, ax=axs[1],
+    color='black', linewidth=0.75
+).set(title='Uniform(0, 1)', xlabel='Sample size', ylabel='Sample mean',
+      ylim=(0,1))
+
+axs[1].axhline(0.5, color='red', linestyle='--', linewidth=0.75)
+
+# Section 6.4.2: The Central Limit Theorem
+
+# sims = number of simulations
+
+n_samp = 1000
+
+z_binom=np.zeros(sims)
+z_unif=np.zeros(sims)
+
+for i in range(sims):
+    x = stats.binom.rvs(n=10, p=0.2, size=n_samp)
+    z_binom[i] = (x.mean() - 2) / np.sqrt(1.6 / n_samp)
+    x = stats.uniform.rvs(size=n_samp, loc=0, scale=1)
+    z_unif[i] = (x.mean() - 0.5) / np.sqrt(1 / (12 * n_samp))
+
+# store the standard normal PDF
+x = np.arange(-3, 3.01, 0.01)
+x_pdf = stats.norm.pdf(x) # PDF of x
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+sns.histplot(
+    z_binom, stat='density', bins=40, color='white', edgecolor='black', 
+    ax=axs[0]
+).set(xlabel='z-score', title='Binomial(0.2, 10)',
+      xlim=(-4, 4), ylim=(0, 0.6))
+
+# Overlay the normal density 
+sns.lineplot(x=x, y=x_pdf, color='black', linewidth=0.75, ax=axs[0])
+
+sns.histplot(
+    z_unif, stat='density', bins=40, color='white', edgecolor='black', 
+    ax=axs[1]
+).set(xlabel='z-score', title='Uniform(0, 1)',
+      xlim=(-4, 4), ylim=(0, 0.6))
+
+sns.lineplot(x=x, y=x_pdf, color='black', linewidth=0.75, ax=axs[1])
