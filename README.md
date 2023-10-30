@@ -17,8 +17,8 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 | 3. Measurement | [Complete](https://github.com/jeffallen13/qsspy/tree/main/MEASUREMENT) |
 | 4. Prediction| [Complete](https://github.com/jeffallen13/qsspy/tree/main/PREDICTION) |
 | 5. Discovery | **X** |
-| 6. Probability | [In Progress](https://github.com/jeffallen13/qsspy/tree/main/PROBABILITY) |
-| 7. Uncertainty| **X** |
+| 6. Probability | [Complete](https://github.com/jeffallen13/qsspy/tree/main/PROBABILITY) |
+| 7. Uncertainty| In Progress |
 
 ## Setup
 
