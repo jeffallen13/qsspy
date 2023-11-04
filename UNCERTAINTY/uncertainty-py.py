@@ -98,4 +98,60 @@ se.mean()
 
 # Section 7.1.3: Confidence Intervals
 
+n = 1000 # sample size
+x_bar = 0.6 # point estimate
+s_e = np.sqrt(x_bar * (1-x_bar) / n) # standard error
+
+# 99% confidence intervals; display as a tuple
+((x_bar - stats.norm.ppf(0.995) * s_e).round(5), 
+ (x_bar + stats.norm.ppf(0.995) * s_e).round(5))
+
+# 95% confidence intervals
+((x_bar - stats.norm.ppf(0.975) * s_e).round(5), 
+ (x_bar + stats.norm.ppf(0.975) * s_e).round(5))
+
+# 90% confidence intervals
+((x_bar - stats.norm.ppf(0.95) * s_e).round(5), 
+ (x_bar + stats.norm.ppf(0.95) * s_e).round(5))
+
+# empty container matrices for 2 sets of confidence intervals
+ci95 = np.zeros(sims*2).reshape(sims, 2)
+ci90 = np.zeros(sims*2).reshape(sims, 2)
+
+# 95 percent confidence intervals
+ci95[:,0] = diff_means - stats.norm.ppf(0.975) * se # lower limit
+ci95[:,1] = diff_means + stats.norm.ppf(0.975) * se # upper limit
+
+# 90 percent confidence intervals
+ci90[:,0] = diff_means - stats.norm.ppf(0.95) * se # lower limit
+ci90[:,1] = diff_means + stats.norm.ppf(0.95) * se # upper limit
+
+# coverage rate for 95% confidence interval
+((ci95[:,0] <= 1) & (ci95[:,1] >= 1)).mean()
+# coverage rate for 90% confidence interval
+((ci90[:,0] <= 1) & (ci90[:,1] >= 1)).mean()
+
+p = 0.6 # true parameter value
+n = np.array([50, 100, 1000]) # 3 sample sizes to be examined
+alpha = 0.05
+sims = 5000 # number of simulations
+results = np.zeros(len(n)) # a container for results
+
+for i in range(len(n)):
+    ci_results = np.zeros(sims) # a container for whether CI contains truth
+    # loop for repeated hypothetical survey sampling
+    for j in range(sims):
+        data = stats.binom.rvs(n=1, p=p, size=n[i]) # simple random sampling
+        x_bar = data.mean() # sample proportion as an estimate
+        s_e = np.sqrt(x_bar * (1-x_bar) / n[i]) # standard errors
+        ci_lower = x_bar - stats.norm.ppf(1-alpha/2) * s_e
+        ci_upper = x_bar + stats.norm.ppf(1-alpha/2) * s_e
+        ci_results[j] = (p >= ci_lower) & (p <= ci_upper)
+    # proportion of CIs that contain the true value
+    results[i] = ci_results.mean()
+
+results
+
+# Section 7.1.4: Margin of Error and Sample Size Calculation in Polls
+
 # In Progress
