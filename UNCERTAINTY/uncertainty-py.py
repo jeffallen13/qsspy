@@ -154,4 +154,104 @@ results
 
 # Section 7.1.4: Margin of Error and Sample Size Calculation in Polls
 
-# In Progress
+MoE = np.array([0.01, 0.03, 0.05]) # the desired margin of error
+p = np.arange(0.01, 1, 0.01)
+n = 1.96**2 * p * (1-p) / MoE[0]**2
+n2 = 1.96**2 * p * (1-p) / MoE[1]**2
+n3 = 1.96**2 * p * (1-p) / MoE[2]**2
+
+fig, ax = plt.subplots(figsize=(6,4))
+
+sns.lineplot(x=p, y=n, ax=ax, color='black').set(
+    ylim=(-1000, 11000), xlabel='Population Proportion', ylabel='Sample Size'
+)
+
+sns.lineplot(x=p, y=n2, ax=ax, color='black', linestyle='--')
+
+sns.lineplot(x=p, y=n3, ax=ax, color='black', linestyle=':')
+
+# Add text labels
+ax.text(0.32, 10000, 'margin of error = 0.01', fontsize=10)
+ax.text(0.32, 1700, 'margin of error = 0.03', fontsize=10)
+ax.text(0.32, -250, 'margin of error = 0.05', fontsize=10)
+
+# election and polling results, by state
+pres08 = pd.read_csv('pres08.csv')
+polls08 = pd.read_csv('polls08.csv')
+
+# convert to a date object
+polls08['middate'] = pd.to_datetime(polls08['middate'])
+
+# number of days to the election
+from datetime import datetime
+election_day = datetime.strptime('2008-11-04', '%Y-%m-%d')
+polls08['days_to_election'] = (election_day - polls08['middate']).dt.days
+
+# extract unique state names which the loop will iterate through
+st_names = polls08['state'].unique()
+
+# create an empty 51 X 3 placeholder Data Frame
+poll_pred = pd.DataFrame(np.zeros(51*3).reshape(51, 3), index=st_names)
+
+# loop across the 50 states plus DC
+for i in range(len(st_names)):
+    # subset the ith state
+    state_data = polls08[polls08['state']==st_names[i]]
+    # further subset the latest polls within the state
+    latest = (state_data['days_to_election']== 
+              state_data['days_to_election'].min())
+    # compute the mean of the latest polls and store it
+    poll_pred.iloc[i, 0] = state_data['Obama'][latest].mean() / 100
+
+# upper and lower confidence limits
+n = 1000 # sample size
+alpha = 0.05
+se = np.sqrt(poll_pred.iloc[:,0] * (1-poll_pred.iloc[:,0]) / n) # standard error
+poll_pred.iloc[:,1] = poll_pred.iloc[:,0] - stats.norm.ppf(1-alpha/2) * se
+poll_pred.iloc[:,2] = poll_pred.iloc[:,0] + stats.norm.ppf(1-alpha/2) * se
+
+# plot the results
+fig, ax = plt.subplots(figsize=(6,4))
+
+sns.scatterplot(
+    x = pres08['Obama'] / 100, y = poll_pred.iloc[:,0].reset_index(drop=True), 
+    ax=ax, color='white', edgecolor='black'
+).set(xlabel="Obama's vote share", ylabel='Poll prediction', 
+      xlim=(0, 1), ylim=(0, 1))
+
+ax.axline((0, 0), slope=1, color='black', linewidth=0.5)
+
+# adding 95% confidence intervals for each state 
+for i in range(len(st_names)):
+    ax.plot(
+        [pres08['Obama'][i] / 100] * 2,
+        [poll_pred.iloc[i,1], poll_pred.iloc[i,2]], 
+        color='black', linewidth=0.5
+    )
+
+# proportion of confidence intervals that contain the election day outcome
+# reset index: can only compare identically-labeled Series objects
+((poll_pred.iloc[:,1].reset_index(drop=True) <= pres08['Obama'] / 100 ) & 
+ (poll_pred.iloc[:,2].reset_index(drop=True) >= pres08['Obama'] / 100)).mean()
+
+# bias
+bias=(poll_pred.iloc[:,0].reset_index(drop=True) - pres08['Obama']/100).mean()
+bias
+
+# bias corrected estimate
+poll_bias = poll_pred.iloc[:,0] - bias
+
+# bias corrected standard error
+se_bias = np.sqrt(poll_bias * (1-poll_bias) / n)
+
+# bias corrected confidence intervals
+ci_bias_lower = poll_bias - stats.norm.ppf(1-alpha/2) * se_bias
+ci_bias_upper = poll_bias + stats.norm.ppf(1-alpha/2) * se_bias
+
+# proportion of bias corrected CIs that contain election day outcome
+((ci_bias_lower.reset_index(drop=True) <= pres08['Obama'] / 100) & 
+ (ci_bias_upper.reset_index(drop=True) >= pres08['Obama'] / 100)).mean()
+
+# Section 7.1.5: Analysis of Randomized Controlled Trials
+
+# In progress
