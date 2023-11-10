@@ -184,6 +184,7 @@ polls08['middate'] = pd.to_datetime(polls08['middate'])
 
 # number of days to the election
 from datetime import datetime
+import pandas as pd
 election_day = datetime.strptime('2008-11-04', '%Y-%m-%d')
 polls08['days_to_election'] = (election_day - polls08['middate']).dt.days
 
@@ -253,5 +254,67 @@ ci_bias_upper = poll_bias + stats.norm.ppf(1-alpha/2) * se_bias
  (ci_bias_upper.reset_index(drop=True) >= pres08['Obama'] / 100)).mean()
 
 # Section 7.1.5: Analysis of Randomized Controlled Trials
+
+STAR = pd.read_csv('STAR.csv')
+
+fig, axs = plt.subplots(1, 2, figsize=(12,5))
+
+sns.histplot(
+    STAR['g4reading'][STAR.classtype==1], stat = 'density', ax=axs[0],
+    color='white', edgecolor='black', bins=15
+).set(ylim=(0, 0.01), xlim=(500, 900), title='Small class',
+      xlabel='Fourth grade reading test score')
+
+axs[0].axvline(STAR['g4reading'][STAR.classtype==1].mean(), 
+               color='blue', linewidth=0.75)
+
+sns.histplot(
+    STAR['g4reading'][STAR.classtype==2], stat = 'density', ax=axs[1],
+    color='white', edgecolor='black', bins=15
+).set(ylim=(0, 0.01), xlim=(500, 900), title='Regular class',
+      xlabel='Fourth grade reading test score')
+
+axs[1].axvline(STAR['g4reading'][STAR.classtype==2].mean(),
+                color='blue', linewidth=0.75)
+
+# estimate and standard error for small class size
+n_small = (STAR['classtype']==1 & STAR['g4reading'].notnull()).sum()
+est_small = STAR['g4reading'][STAR.classtype==1].mean()
+se_small = STAR['g4reading'][STAR.classtype==1].std() / np.sqrt(n_small)
+est_small, se_small
+
+# estimate and standard error for regular class size
+n_regular = ((STAR['classtype']==2) & 
+             (STAR['classtype'].notnull()) & 
+             (STAR['g4reading'].notnull())).sum()
+est_regular = STAR['g4reading'][STAR.classtype==2].mean()
+se_regular = STAR['g4reading'][STAR.classtype==2].std() / np.sqrt(n_regular)
+est_regular, se_regular
+
+alpha = 0.05
+
+# 95% confidence intervals for small class size
+ci_small = (est_small - stats.norm.ppf(1-alpha/2) * se_small,
+            est_small + stats.norm.ppf(1-alpha/2) * se_small)
+ci_small
+
+# 95% confidence intervals for regular class size
+ci_regular = (est_regular - stats.norm.ppf(1-alpha/2) * se_regular,
+              est_regular + stats.norm.ppf(1-alpha/2) * se_regular)
+ci_regular
+
+# difference in means estimator
+ate_est = est_small - est_regular
+ate_est
+
+# standard error and 95% confidence interval
+ate_se = np.sqrt(se_small**2 + se_regular**2)
+ate_se
+
+ate_ci = (ate_est - stats.norm.ppf(1-alpha/2) * ate_se,
+          ate_est + stats.norm.ppf(1-alpha/2) * ate_se)
+ate_ci
+
+# Section 7.1.6: Analysis Based on Student’s t-Distribution
 
 # In progress
