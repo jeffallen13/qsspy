@@ -395,4 +395,29 @@ correct.value_counts(normalize=True).sort_index() - true
 
 # Section 7.2.2: The General Framework
 
-# In Progress
+# all correct
+x = pd.DataFrame({'M': [4,0], 'T': [0,4]}, index=['M','T'])
+# six correct
+y = pd.DataFrame({'M': [3,1], 'T': [1,3]}, index=['M','T'])
+
+x
+
+y
+
+# one-sided test for 8 correct guesses
+fisher_one=stats.fisher_exact(x.values, alternative='greater')
+
+print(f"""Fisher's Exact Test for Count Data: One-Sided
+P-value: {fisher_one.pvalue.round(5)}
+""")
+
+# two-sided test for 6 correct guesses 
+fisher_two=stats.fisher_exact(y.values)
+
+print(f"""Fisher's Exact Test for Count Data: Two-Sided
+P-value: {fisher_two.pvalue.round(5)}
+""")
+
+# Section 7.2.3: One-Sample Tests
+
+# In progress 
