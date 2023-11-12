@@ -317,4 +317,82 @@ ate_ci
 
 # Section 7.1.6: Analysis Based on Student’s t-Distribution
 
-# In progress
+# 95% CI for small class 
+(est_small - stats.t.ppf(0.975, df=n_small-1) * se_small,
+ est_small + stats.t.ppf(0.975, df=n_small-1) * se_small)
+
+# 95% CI based on the central limit theorem
+ci_small
+
+# 95% CI for regular class 
+(est_regular - stats.t.ppf(0.975, df=n_regular-1) * se_regular,
+ est_regular + stats.t.ppf(0.975, df=n_regular-1) * se_regular)
+
+# 95% CI based on the central limit theorem
+ci_regular
+
+test_result = stats.ttest_ind(
+    STAR['g4reading'][STAR.classtype==1], 
+    STAR['g4reading'][STAR.classtype==2],
+    # override default equal_var=True; False is Welch t-test 
+    equal_var=False, 
+    # override default nan_policy='propogate'
+    nan_policy='omit')
+
+# extract results from the test_result object 
+test_result.pvalue.round(5)
+
+# store results for printing 
+t_stat = test_result.statistic.round(4)
+p_value = test_result.pvalue.round(5)
+df = test_result.df.round(1)
+ci = test_result.confidence_interval(confidence_level=0.95)
+
+print(f"""Welch Two Sample t-test
+t-stat: {t_stat}
+p-value: {p_value}
+df: {df}
+95% confidence interval: ({ci[0].round(5)}, {ci[1].round(5)})""")
+
+# ---------------------- Section 7.2: Hypothesis Testing --------------------- #
+
+# Section 7.2.1: Tea-Testing Experiment
+from math import comb
+
+# truth: enumerate the number of assignment combinations
+true = np.array(
+    [comb(4,0) * comb(4,4),
+     comb(4,1) * comb(4,3),
+     comb(4,2) * comb(4,2),
+     comb(4,3) * comb(4,1),
+     comb(4,4) * comb(4,0)]
+)
+
+true
+
+# compute probability: divide it by the total number of events
+true = pd.Series(true / true.sum(), index=[0,2,4,6,8])
+
+true
+
+# simulations
+sims=1000
+# lady's guess: M stands for 'Milk first', T stands for 'Tea first'
+guess=np.array(['M', 'T', 'T', 'M', 'M', 'T', 'T', 'M'])
+sample_vector=np.array(['T']*4 + ['M']*4)
+correct=pd.Series(np.zeros(sims)) # place holder for number of correct guesses
+
+for i in range(sims):
+    # randomize which cups get Milk/Tea first
+    cups=np.random.choice(sample_vector, size=len(sample_vector), replace=False)
+    correct[i]=(guess==cups).sum() # number of correct guesses
+
+# estimated probability for each number of correct guesse
+correct.value_counts(normalize=True).sort_index()
+
+# comparison with analytical answers; the differences are small
+correct.value_counts(normalize=True).sort_index() - true
+
+# Section 7.2.2: The General Framework
+
+# In Progress
