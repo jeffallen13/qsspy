@@ -336,23 +336,23 @@ test_result = stats.ttest_ind(
     STAR['g4reading'][STAR.classtype==2],
     # override default equal_var=True; False is Welch t-test 
     equal_var=False, 
-    # override default nan_policy='propogate'
+    # override default nan_policy='propagate'
     nan_policy='omit')
 
-# extract results from the test_result object 
-test_result.pvalue.round(5)
+# we can extract results from the test_result object 
+test_result.pvalue
 
-# store results for printing 
-t_stat = test_result.statistic.round(4)
-p_value = test_result.pvalue.round(5)
-df = test_result.df.round(1)
+# find the confidence interval 
 ci = test_result.confidence_interval(confidence_level=0.95)
 
-print(f"""Welch Two Sample t-test
-t-stat: {t_stat}
-p-value: {p_value}
-df: {df}
-95% confidence interval: ({ci[0].round(5)}, {ci[1].round(5)})""")
+# print summary of results
+print(
+    'Welch Two Sample t-test\n'
+    f"t-stat: {test_result.statistic:.4f}\n"
+    f"p-value: {test_result.pvalue:.4f}\n"
+    f"df: {test_result.df:.1f}\n"
+    f"95% confidence interval: ({ci[0]:.4f}, {ci[1]:.4f})"
+)
 
 # ---------------------- Section 7.2: Hypothesis Testing --------------------- #
 
@@ -387,7 +387,7 @@ for i in range(sims):
     cups=np.random.choice(sample_vector, size=len(sample_vector), replace=False)
     correct[i]=(guess==cups).sum() # number of correct guesses
 
-# estimated probability for each number of correct guesse
+# estimated probability for each number of correct guesses
 correct.value_counts(normalize=True).sort_index()
 
 # comparison with analytical answers; the differences are small
@@ -407,17 +407,124 @@ y
 # one-sided test for 8 correct guesses
 fisher_one=stats.fisher_exact(x.values, alternative='greater')
 
-print(f"""Fisher's Exact Test for Count Data: One-Sided
-P-value: {fisher_one.pvalue.round(5)}
-""")
+print(
+    "Fisher's Exact Test for Count Data: One-Sided\n"
+    f"P-value: {fisher_one.pvalue:.5f}"
+)
 
 # two-sided test for 6 correct guesses 
 fisher_two=stats.fisher_exact(y.values)
 
-print(f"""Fisher's Exact Test for Count Data: Two-Sided
-P-value: {fisher_two.pvalue.round(5)}
-""")
+print(
+    "Fisher's Exact Test for Count Data: Two-Sided\n"
+    f"P-value: {fisher_two.pvalue:.5f}"
+)
 
 # Section 7.2.3: One-Sample Tests
 
-# In progress 
+n = 1018
+x_bar = 550 / n
+se = np.sqrt(0.5 * 0.5 / n) # standard deviation of sampling distribution
+
+# upper red area in the figure
+upper = 1 - stats.norm.cdf(x_bar, loc=0.5, scale=se)
+
+# lower red area in the figure; identical to the upper area
+lower = stats.norm.cdf(0.5 - (x_bar - 0.5), loc=0.5, scale=se)
+
+# two-sided p-value
+upper + lower
+
+2 * upper
+
+# one-sided p-value
+upper
+
+z_score = (x_bar - 0.5) / se
+z_score
+
+# one-sided p-value
+1 - stats.norm.cdf(z_score)
+
+# two-sided p-value
+2 * (1 - stats.norm.cdf(z_score))
+
+# 99% confidence interval contains 0.5
+(x_bar - stats.norm.ppf(0.995) * se, x_bar + stats.norm.ppf(0.995) * se)
+
+# 95% confidence interval does not contain 0.5
+(x_bar - stats.norm.ppf(0.975) * se, x_bar + stats.norm.ppf(0.975) * se)
+
+from statsmodels.stats.proportion import proportions_ztest, proportion_confint
+
+# no continuity correction to get the same p-value as above
+stat, pval = proportions_ztest(count=550, nobs=n, value=0.5, prop_var=0.5)
+ci = proportion_confint(count=550, nobs=n)
+
+print(
+    f"One-sample z-test without continuity correction\n"
+    f"Alternative hypothesis: true p is not equal to 0.5\n"
+    f"Sample proportion: {x_bar:.4f}\n"
+    f"Test statistic: {stat:.4f}\n"
+    f"P-value: {pval:.4f}\n"
+    f"95% confidence interval: ({ci[0]:.4f}, {ci[1]:.4f})"
+)
+
+
+'''
+The continuity correction factor subtracts 0.5 from the sample proportion 
+before computing the test statistic. The correction factor is not built into 
+the one-sample z-tests available in Python. However, we can build a function to 
+implement the correction using the hypothesis testing logic we have developed. 
+'''
+# Define a function to implement the continuity correction factor
+def proportions_ztest_correct(count, nobs, value, conf_level=0.95):
+    
+    # compute the p-value
+    prop = count / nobs
+    correction = 0.5 / nobs # Yates' continuity correction
+    adjusted_prop = prop - correction
+    se_null = np.sqrt(value * (1-value) / nobs) # SE under the null hypothesis
+    z_score = np.abs(adjusted_prop-value) / se_null
+    # assume a two-tailed test, but we could generalize this
+    pval = 2 * (1 - stats.norm.cdf(z_score))
+
+    # compute the confidence interval
+    se_sample = np.sqrt(adjusted_prop * (1-adjusted_prop) / nobs)
+    alpha = 1-conf_level
+    ci_lower = adjusted_prop - stats.norm.ppf(1-alpha/2) * se_sample
+    ci_upper = adjusted_prop + stats.norm.ppf(1-alpha/2) * se_sample
+    conf_print = int(conf_level * 100)
+
+    print(
+        f"One-sample z-test with continuity correction\n"
+        f"Alternative hypothesis: true p is not equal to {value}\n"
+        f"Sample proportion: {prop:.4f}\n"
+        f"Test statistic: {z_score:.4f}\n"
+        f"P-value: {pval:.4f}\n"
+        f"{conf_print}% confidence interval: ({ci_lower:.4f}, {ci_upper:.4f})"
+    )
+
+proportions_ztest_correct(count=550, nobs=n, value=0.5)
+
+proportions_ztest_correct(count=550, nobs=n, value=0.5, conf_level=0.99)
+
+# two-sided one-sample t-test
+star_ttest = stats.ttest_1samp(STAR.g4reading, popmean=710, nan_policy='omit')
+
+ci_lower = star_ttest.confidence_interval()[0]
+ci_upper = star_ttest.confidence_interval()[1]
+
+print(
+    f"One-sample t-test\n"
+    f"Alternative hypothesis: true mean is not equal to 710\n"
+    f"Sample mean: {STAR.g4reading.mean():.3f}\n"
+    f"t-statistic: {star_ttest.statistic:.3f}\n"
+    f"df: {star_ttest.df}\n"
+    f"P-value: {star_ttest.pvalue:.5f}\n"
+    f"95% confidence interval: ({ci_lower:.3f}, {ci_upper:.3f})"
+)
+
+# Section 7.2.4: Two-Sample Tests
+
+# In Progress
