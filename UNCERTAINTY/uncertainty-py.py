@@ -462,8 +462,8 @@ stat, pval = proportions_ztest(count=550, nobs=n, value=0.5, prop_var=0.5)
 ci = proportion_confint(count=550, nobs=n)
 
 print(
-    f"One-sample z-test without continuity correction\n"
-    f"Alternative hypothesis: true p is not equal to 0.5\n"
+    'One-sample z-test without continuity correction\n'
+    'Alternative hypothesis: true p is not equal to 0.5\n'
     f"Sample proportion: {x_bar:.4f}\n"
     f"Test statistic: {stat:.4f}\n"
     f"P-value: {pval:.4f}\n"
@@ -497,7 +497,7 @@ def proportions_ztest_correct(count, nobs, value, conf_level=0.95):
     conf_print = int(conf_level * 100)
 
     print(
-        f"One-sample z-test with continuity correction\n"
+        'One-sample z-test with continuity correction\n'
         f"Alternative hypothesis: true p is not equal to {value}\n"
         f"Sample proportion: {prop:.4f}\n"
         f"Test statistic: {z_score:.4f}\n"
@@ -516,8 +516,8 @@ ci_lower = star_ttest.confidence_interval()[0]
 ci_upper = star_ttest.confidence_interval()[1]
 
 print(
-    f"One-sample t-test\n"
-    f"Alternative hypothesis: true mean is not equal to 710\n"
+    'One-sample t-test\n'
+    'Alternative hypothesis: true mean is not equal to 710\n'
     f"Sample mean: {STAR.g4reading.mean():.3f}\n"
     f"t-statistic: {star_ttest.statistic:.3f}\n"
     f"df: {star_ttest.df}\n"
@@ -526,5 +526,83 @@ print(
 )
 
 # Section 7.2.4: Two-Sample Tests
+
+# one-sided p-value
+stats.norm.cdf(-np.abs(ate_est), loc=0, scale=ate_se)
+
+# two-sided p-value
+2 * stats.norm.cdf(-np.abs(ate_est), loc=0, scale=ate_se)
+
+# testing the null of zero average treatment effect
+ttest = stats.ttest_ind(STAR.g4reading[STAR.classtype==1], 
+                        STAR.g4reading[STAR.classtype==2], 
+                        equal_var=False, nan_policy='omit')
+
+ci_lower = ttest.confidence_interval()[0]
+ci_upper = ttest.confidence_interval()[1]
+
+print(
+    'Welch Two Sample t-test\n'
+    'Alternative hypothesis: true difference in means is not equal to 0\n'
+    f"Sample mean difference: {ate_est:.3f}\n"
+    f"t-statistic: {ttest.statistic:.3f}\n"
+    f"df: {ttest.df:.1f}\n"
+    f"P-value: {ttest.pvalue:.5f}\n"
+    f"95% confidence interval: ({ci_lower:.3f}, {ci_upper:.3f})"
+)
+
+
+resume = pd.read_csv('resume.csv')
+
+# organize the data in a cross-tab
+x = pd.crosstab(resume.race, resume.call)
+x
+
+# one-sided test with continuity correction factor
+result = stats.chi2_contingency(x)
+
+print(
+    '2-sample test for equality of proportions with continuity correction\n'
+    'Alternative hypothesis: greater\n'
+    f"X-squared: {result.statistic:.3f}\n"
+    f"P-value: {result.pvalue/2}\n"
+)
+
+# sample size
+n0 = (resume.race=='black').sum()
+n1 = (resume.race=='white').sum()
+
+# sample proportions
+p = resume['call'].mean() # overall
+p0 = resume['call'][resume.race=='black'].mean()
+p1 = resume['call'][resume.race=='white'].mean()
+
+# point estimate
+est = p1 - p0
+est
+
+# standard error
+se = np.sqrt(p * (1 - p) * (1 / n0 + 1 / n1))
+se
+
+# z-statistic
+zstat = est / se
+zstat
+
+# one-sided p-value
+stats.norm.cdf(-abs(zstat))
+
+result_uncorrected = stats.chi2_contingency(x, correction=False)
+
+print(
+    '2-sample test for equality of proportions without continuity correction\n'
+    'Alternative hypothesis: greater\n'
+    f"X-squared: {result_uncorrected.statistic:.3f}\n"
+    f"P-value: {result_uncorrected.pvalue/2}"
+)
+
+# Section 7.2.5: Pitfalls of Hypothesis Testing
+
+# Section 7.2.6: Power Analysis
 
 # In Progress
