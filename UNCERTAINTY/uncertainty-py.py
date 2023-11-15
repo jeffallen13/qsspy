@@ -605,4 +605,65 @@ print(
 
 # Section 7.2.6: Power Analysis
 
-# In Progress
+# set the parameters
+n = 250
+p_star = 0.48 # data generating process
+p = 0.5 # null value
+alpha = 0.05
+
+# critical value
+cr_value = stats.norm.ppf(1-alpha/2)
+
+# standard errors under the hypothetical data generating process
+se_star = np.sqrt(p_star * (1 - p_star) / n)
+
+# standard error under the null
+se = np.sqrt(p * (1 - p) / n)
+
+# power
+(stats.norm.cdf(p - cr_value * se, loc=p_star, scale=se_star) + 
+ 1 - stats.norm.cdf(p + cr_value * se, loc=p_star, scale=se_star))
+
+# parameters
+n1 = 500
+n0 = 500
+p1_star = 0.05
+p0_star = 0.1
+
+# overall call back rate as a weighted average
+p = (n1 * p1_star + n0 * p0_star) / (n1 + n0)
+# standard error under the null
+se = np.sqrt(p * (1 - p) * (1 / n1 + 1 / n0))
+# standard error under the hypothetical data generating process
+se_star = np.sqrt(p1_star * (1 - p1_star) / n1 + p0_star * (1 - p0_star) / n0)
+
+(stats.norm.cdf(-cr_value * se, loc=(p1_star-p0_star), scale=se_star) + 
+ 1 - stats.norm.cdf(cr_value * se, loc=(p1_star-p0_star), scale=se_star))
+
+
+from statsmodels.stats.proportion import (power_proportions_2indep,
+                                          samplesize_proportions_2indep_onetail)
+
+power = power_proportions_2indep(
+    diff=(p0_star - p1_star), prop2=p1_star, alpha=0.05, nobs1=n1
+)
+print(power)
+
+samplesize_proportions_2indep_onetail(
+    diff=(p0_star - p1_star), prop2=p1_star, alpha=0.05, power=0.9
+)
+ 
+from statsmodels.stats.power import TTestPower, TTestIndPower
+
+TTestPower().solve_power(effect_size=0.25, nobs=100, alpha=0.05)
+
+TTestPower().solve_power(effect_size=0.25, power=0.9, alpha=0.05)
+
+TTestIndPower().solve_power(effect_size=0.25, power=0.9, alpha=0.05, 
+                            alternative='larger')
+
+# ----------- Section 7.3: Linear Regression Model with Uncertainty ---------- #
+
+# Section 7.3.1: Linear Regression as a Generative Model
+
+# In progress
