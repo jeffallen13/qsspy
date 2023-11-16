@@ -502,8 +502,7 @@ def proportions_ztest_correct(count, nobs, value, conf_level=0.95):
         f"Sample proportion: {prop:.4f}\n"
         f"Test statistic: {z_score:.4f}\n"
         f"P-value: {pval:.4f}\n"
-        f"{conf_print}% confidence interval: ({ci_lower:.4f}, {ci_upper:.4f})"
-    )
+        f"{conf_print}% confidence interval: ({ci_lower:.4f}, {ci_upper:.4f})")
 
 proportions_ztest_correct(count=550, nobs=n, value=0.5)
 
@@ -701,6 +700,10 @@ fit_minwage1.predict(minwage.iloc[[0]])
 
 # Section 7.3.2: Unbiasedness of Estimated Coefficients
 
+# Section 7.3.3: Standard Errors of Estimated Coefficients
+
+# Section 7.3.4: Inference About Coefficients
+
 women = pd.read_csv('women.csv')
 
 fit_women = smf.ols('water ~ reserved', data=women).fit()
@@ -710,11 +713,11 @@ print(fit_women.summary())
 # 95% confidence intervals
 fit_women.conf_int().rename(columns={0:'2.5%', 1:'97.5%'})
 
-print(fit_minwage.summary())
+print(fit_minwage.summary(slim=True))
 
 # confidence interval just for the 'NJ' variable
 fit_minwage.conf_int().rename(columns={0:'2.5%', 1:'97.5%'}).loc['NJ']
 
-# Section 7.3.3: Standard Errors of Estimated Coefficients
+# Section 7.3.5: Inference About Predictions
 
-# In progress
+# In Progress
