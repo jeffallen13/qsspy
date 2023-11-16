@@ -720,4 +720,99 @@ fit_minwage.conf_int().rename(columns={0:'2.5%', 1:'97.5%'}).loc['NJ']
 
 # Section 7.3.5: Inference About Predictions
 
-# In Progress
+# load the data and replace dots in column names with underscores
+MPs = pd.read_csv('MPs.csv')
+MPs.columns = MPs.columns.str.replace('.', '_')
+
+# subset the data into two parties 
+MPs_labour = MPs.loc[MPs['party']=='labour'].copy()
+MPs_tory = MPs.loc[MPs['party']=='tory'].copy()
+
+# two regressions for Labour: negative and positive margin
+labour_fit1 = smf.ols('ln_net ~ margin', 
+                      data=MPs_labour[MPs_labour.margin < 0]).fit()
+
+labour_fit2 = smf.ols('ln_net ~ margin', 
+                      data=MPs_labour[MPs_labour.margin > 0]).fit()
+
+# two regressions for Tory: negative and positive margin
+tory_fit1 = smf.ols('ln_net ~ margin', 
+                    data=MPs_tory[MPs_tory.margin < 0]).fit()
+
+tory_fit2 = smf.ols('ln_net ~ margin',
+                    data=MPs_tory[MPs_tory.margin > 0]).fit()
+
+# tory party: prediction at the threshold
+tory_y0 = tory_fit1.get_prediction(pd.DataFrame({'margin': [0]}))
+tory_y0.summary_frame()[['mean', 'mean_ci_lower', 'mean_ci_upper']]
+
+tory_y1 = tory_fit2.get_prediction(pd.DataFrame({'margin': [0]}))
+tory_y1.summary_frame()[['mean', 'mean_ci_lower', 'mean_ci_upper']]
+
+# range of predictors; min to 0 and 0 to max
+y1_range = np.arange(0, MPs_tory['margin'].min(), -0.01)
+y2_range = np.arange(0, MPs_tory['margin'].max(), 0.01)
+
+# prediction using all the values
+tory_y0_range = (
+    tory_fit1.get_prediction(pd.DataFrame({'margin': y1_range}))
+    .summary_frame()[['mean', 'mean_ci_lower', 'mean_ci_upper']]
+)
+
+tory_y1_range = (
+    tory_fit2.get_prediction(pd.DataFrame({'margin': y2_range}))
+    .summary_frame()[['mean', 'mean_ci_lower', 'mean_ci_upper']]
+)
+
+fig, ax = plt.subplots(figsize=(6,4))
+
+# plot regression line and confidence intervals for losers
+sns.lineplot(
+    x=y1_range, y=tory_y0_range['mean'], ax=ax, color='black'
+).set(xlim=(-0.5, 0.5), ylim=(10, 15), 
+      xlabel='Margin of victory', ylabel='log net wealth')
+
+sns.lineplot(x=y1_range, y=tory_y0_range['mean_ci_lower'], ax=ax, 
+             color='black', linestyle='--')
+
+sns.lineplot(x=y1_range, y=tory_y0_range['mean_ci_upper'], ax=ax, 
+             color='black', linestyle='--')
+
+# plot regression line and confidence intervals for winners
+sns.lineplot(x=y2_range, y=tory_y1_range['mean'], ax=ax, color='black')
+
+sns.lineplot(x=y2_range, y=tory_y1_range['mean_ci_lower'], ax=ax, 
+             color='black', linestyle='--')
+
+sns.lineplot(x=y2_range, y=tory_y1_range['mean_ci_upper'], ax=ax, 
+             color='black', linestyle='--')
+
+ax.axvline(x=0, color='black', linestyle=':', linewidth=0.75)
+
+# return standard errors for predictions at threshold
+tory_y0.summary_frame()[['mean', 'mean_ci_lower', 'mean_ci_upper', 'mean_se']]
+
+# access the mean and standard error directly
+tory_y0.predicted_mean
+tory_y0.se_mean
+
+# s.e. of the intercept is the same as s.e. of the predicted value
+print(tory_fit1.summary(slim=True))
+
+# standard error
+se_diff = np.sqrt(tory_y0.se_mean[0]**2 + tory_y1.se_mean[0]**2)
+se_diff
+
+# point estimate
+diff_est = tory_y1.predicted_mean[0] - tory_y0.predicted_mean[0]
+diff_est
+
+# confidence interval
+CI = (diff_est - se_diff * stats.norm.ppf(0.975),
+        diff_est + se_diff * stats.norm.ppf(0.975))
+CI
+
+# hypothesis test
+z_score = diff_est / se_diff
+p_value = 2 * stats.norm.cdf(-abs(z_score))
+p_value
