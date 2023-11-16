@@ -701,8 +701,20 @@ fit_minwage1.predict(minwage.iloc[[0]])
 
 # Section 7.3.2: Unbiasedness of Estimated Coefficients
 
-# Section 7.3.3: Standard Errors of Estimated Coefficients
+women = pd.read_csv('women.csv')
 
-# Section 7.3.4: Inference About Coefficients
+fit_women = smf.ols('water ~ reserved', data=women).fit()
+
+print(fit_women.summary())
+
+# 95% confidence intervals
+fit_women.conf_int().rename(columns={0:'2.5%', 1:'97.5%'})
+
+print(fit_minwage.summary())
+
+# confidence interval just for the 'NJ' variable
+fit_minwage.conf_int().rename(columns={0:'2.5%', 1:'97.5%'}).loc['NJ']
+
+# Section 7.3.3: Standard Errors of Estimated Coefficients
 
 # In progress
