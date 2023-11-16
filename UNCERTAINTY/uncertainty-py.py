@@ -665,5 +665,44 @@ TTestIndPower().solve_power(effect_size=0.25, power=0.9, alpha=0.05,
 # ----------- Section 7.3: Linear Regression Model with Uncertainty ---------- #
 
 # Section 7.3.1: Linear Regression as a Generative Model
+import statsmodels.formula.api as smf
+
+minwage = pd.read_csv('minwage.csv')
+
+# compute proportion of full employment before minimum wage increase
+minwage['fullPropBefore'] = minwage['fullBefore'] / (
+    minwage['fullBefore'] + minwage['partBefore']
+)
+
+# same thing after minimum wage increase
+minwage['fullPropAfter'] = minwage['fullAfter'] / (
+    minwage['fullAfter'] + minwage['partAfter']
+)
+
+# an indicator for NJ: 1 if it's located in NJ and 0 if in PA
+minwage['NJ'] = np.where(minwage['location']=='PA', 0, 1)
+
+minwage_model = 'fullPropAfter ~ -1 + NJ + fullPropBefore + wageBefore + chain'
+
+fit_minwage = smf.ols(minwage_model, data=minwage).fit()
+
+# regression result
+fit_minwage.params
+
+minwage_model1 = 'fullPropAfter ~ NJ + fullPropBefore + wageBefore + chain'
+
+fit_minwage1 = smf.ols(minwage_model1, data=minwage).fit()
+
+fit_minwage1.params
+
+fit_minwage.predict(minwage.iloc[[0]])
+
+fit_minwage1.predict(minwage.iloc[[0]])
+
+# Section 7.3.2: Unbiasedness of Estimated Coefficients
+
+# Section 7.3.3: Standard Errors of Estimated Coefficients
+
+# Section 7.3.4: Inference About Coefficients
 
 # In progress
