@@ -101,8 +101,8 @@ def preprocess_text(text):
     text = re.sub('[0-9]+', '', text)
     # create a list of individual tokens, removing whitespace
     tokens = re.split('\W+', text)
-    # remove stopwords
-    tokens = [word for word in tokens if word not in stopwords]
+    # remove stopwords and any empty strings associated with trailing spaces
+    tokens = [word for word in tokens if word !='' and word not in stopwords]
     # finally, stem each word
     tokens = [ps.stem(word) for word in tokens]
     return tokens
@@ -121,5 +121,27 @@ federalist['text_processed'][9][:15]
 federalist['text'][9][:100]
 
 # Section 5.1.2: Document-Term Matrix
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+'''
+Instantiate the CountVectorizer and pass the preprocess_text function to the
+analyzer argument.
+'''
+count_vect = CountVectorizer(analyzer=preprocess_text)
+
+# transform the text_processed column into a document-term matrix
+dtm = count_vect.fit_transform(federalist['text'])
+
+# the dtm is a sparse matrix
+type(dtm)
+
+# convert the sparse matrix to a dense matrix and store in a DataFrame
+dtm_mat = pd.DataFrame(dtm.toarray(), 
+                       columns=count_vect.get_feature_names_out())
+
+dtm_mat.iloc[:,:10].head()
+
+# Section 5.1.3: Topic Discovery
 
 # In Progress
