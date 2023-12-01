@@ -85,6 +85,16 @@ federalist[['text', 'text_processed']].head()
 stopwords = nltk.corpus.stopwords.words('english')
 stopwords[:10]
 
+stopwords[-10:] # interestingly, includes wouldn't but not would
+
+type(stopwords)
+
+'''
+We can add to the list as appropriate. For example, 'would' is included in 
+many stopword dictionaries. 
+'''
+stopwords.append('would')
+
 # instantiate the Porter stemmer to stem the words
 ps = nltk.PorterStemmer()
 
@@ -144,4 +154,103 @@ dtm_mat.iloc[:,:10].head()
 
 # Section 5.1.3: Topic Discovery
 
-# In Progress
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+essay_12 = dtm_mat.iloc[11,:]
+essay_24 = dtm_mat.iloc[23,:]
+
+# Essay 12 word cloud
+wordcloud_12 = WordCloud(
+    width=800, height=400, background_color ='white'
+).generate_from_frequencies(essay_12)
+
+# Essay 24 word cloud
+wordcloud_24 = WordCloud(
+    width=800, height=400, background_color ='white'
+).generate_from_frequencies(essay_24)
+
+# plot word clouds vertically
+fig, axs = plt.subplots(2, 1, figsize=(8,8))
+
+axs[0].imshow(wordcloud_12)
+axs[0].axis('off')
+axs[0].set_title('Essay 12')
+
+axs[1].imshow(wordcloud_24)
+axs[1].axis('off')
+axs[1].set_title('Essay 24')
+
+# Import the tf-idf vectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Create a tf-idf dtm following the same steps as before 
+tfidf_vect = TfidfVectorizer(analyzer=preprocess_text)
+
+dtm_tfidf = tfidf_vect.fit_transform(federalist['text'])
+
+dtm_tfidf_mat = pd.DataFrame(dtm_tfidf.toarray(), 
+                             columns=tfidf_vect.get_feature_names_out())
+
+# 10 most important words for Paper No. 12
+dtm_tfidf_mat.iloc[11,:].sort_values(ascending=False).head(10)
+
+# 10 most important words for Paper No. 24
+dtm_tfidf_mat.iloc[23,:].sort_values(ascending=False).head(10)
+
+from sklearn.cluster import KMeans
+
+'''
+subset The Federalist papers written by Hamilton using the author column of 
+the federalist DataFrame
+'''
+dtm_tfidf_hamilton = dtm_tfidf_mat[federalist['author']=='Hamilton']
+
+k = 4 # number of clusters
+# instantiate the KMeans object; set random_state for reproducibility
+km_out = KMeans(n_clusters=k, n_init=1, random_state=1234) 
+# fit the model
+km_out.fit(dtm_tfidf_hamilton) 
+
+# check convergence; number of iterations may vary
+km_out.n_iter_
+
+# create data frame from the cluster centers
+centers = pd.DataFrame(km_out.cluster_centers_, 
+                       columns=dtm_tfidf_hamilton.columns)
+
+# extract Hamilton's papers from the federalist DataFrame
+hamilton_df = (federalist.loc[federalist['author']=='Hamilton']
+               .copy().reset_index(drop=True))
+
+km_out.labels_ # cluster labels
+
+# add the cluster labels + 1 to the Hamilton DataFrame
+hamilton_df['cluster'] = km_out.labels_ + 1
+
+hamilton_df.head()
+
+# store cluster numbers
+clusters = np.arange(1, k+1)
+
+# loop through the clusters and print the 10 most important words
+for i in range(len(clusters)):
+    print(f'CLUSTER {clusters[i]}')
+    print('Top 10 words:')
+    print(centers.iloc[i].sort_values(ascending=False).head(10))
+    # store the essay numbers associated with each cluster
+    essays = hamilton_df.loc[hamilton_df['cluster']==clusters[i], 'fed_num']
+    print(f'Federalist Papers: {list(essays)}')
+    print('\n')
+
+'''
+A few themes that emerge:
+Cluster 1: courts, law, jurisprudence
+Cluster 2: state power, tax, revenue
+Cluster 3: institutional design, executive, legislature
+Cluster 4: state power, national government
+'''
+
+# Section 5.1.4: Authorship Prediction
+
+# In progress
