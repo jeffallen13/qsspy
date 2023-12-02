@@ -111,8 +111,10 @@ def preprocess_text(text):
     text = re.sub('[0-9]+', '', text)
     # create a list of individual tokens, removing whitespace
     tokens = re.split('\W+', text)
-    # remove stopwords and any empty strings associated with trailing spaces
-    tokens = [word for word in tokens if word !='' and word not in stopwords]
+    # remove stopwords
+    tokens = [word for word in tokens if word not in stopwords]
+    # remove any empty strings associated with trailing spaces
+    tokens = [word for word in tokens if word !='']
     # finally, stem each word
     tokens = [ps.stem(word) for word in tokens]
     return tokens
@@ -252,5 +254,96 @@ Cluster 4: state power, national government
 '''
 
 # Section 5.1.4: Authorship Prediction
+
+import statsmodels.formula.api as smf
+
+'''
+Customize the preprocessing function to make stemming and stopword removal
+optional and to optionally return strings instead of lists of tokens.
+'''
+def preprocess_text(text, remove_stopwords=True, stem=True,
+                    return_string=False):
+    # make lower case
+    text = text.lower()
+    # remove punctuation
+    text = "".join([word for word in text if word not in string.punctuation])
+    # remove numbers 
+    text = re.sub('[0-9]+', '', text)
+    # create a list of individual tokens, removing whitespace
+    tokens = re.split('\W+', text)
+    # remove stopwords if remove_stopwords=True
+    if remove_stopwords:
+        tokens = [word for word in tokens if word not in stopwords]
+    # remove any empty strings associated with trailing spaces
+    tokens = [word for word in tokens if word !='']
+    # stem each word if stem=True
+    if stem:
+        tokens = [ps.stem(word) for word in tokens]
+    if return_string:
+        return ' '.join(tokens)
+    else:
+        return tokens
+
+# If we preprocess before using the CountVectorizer, it expects strings
+federalist['text_processed_v2'] = (
+    federalist['text'].apply(lambda x: preprocess_text(
+        x, stem=False, remove_stopwords=False, return_string=True))
+)
+
+federalist['text_processed_v2'].head()
+
+# this time, do not pass the preprocess_text function to the analyzer argument
+count_vect1 = CountVectorizer()
+
+dtm1 = count_vect1.fit_transform(federalist['text_processed_v2'])
+
+dtm1_mat = pd.DataFrame(dtm1.toarray(), 
+                        columns=count_vect1.get_feature_names_out())
+
+# term frequency per 1000 words
+row_sums = dtm1_mat.sum(axis='columns')
+tfm = dtm1_mat.div(row_sums, axis='rows')*1000
+
+# words of interest
+words = ['although', 'always', 'commonly', 'consequently', 'considerable',
+         'enough', 'there', 'upon', 'while', 'whilst']
+
+# select only these words
+tfm = tfm.loc[:, words]
+
+# average among Hamilton/Madison essays
+tfm_ave = (pd.concat(
+    [tfm.loc[federalist['author']=='Hamilton'].sum(axis='rows') / len(hamilton),
+     tfm.loc[federalist['author']=='Madison'].sum(axis='rows') / len(madison)],
+     axis=1
+)).T # transpose 
+
+tfm_ave
+
+# add tfm to the federalist data frame
+federalist = pd.concat([federalist, tfm], axis=1)
+
+select_vars = ['fed_num', 'author'] + words
+
+hm_data = (
+    federalist.loc[federalist['author'].isin(['Hamilton', 'Madison']),
+                   select_vars]
+).copy()
+
+hm_data['author'] = np.where(hm_data['author'] == "Hamilton", 1, -1)
+
+hm_data.head()
+
+hm_model = 'author ~ upon + there + consequently + whilst'
+
+hm_fit = smf.ols(hm_model, data=hm_data).fit()
+
+hm_fit.params
+
+hm_fitted = hm_fit.fittedvalues
+
+np.std(hm_fitted)
+
+# Section 5.1.5: Cross-Validation
 
 # In progress
