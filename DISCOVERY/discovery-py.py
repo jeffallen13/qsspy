@@ -323,18 +323,20 @@ tfm_ave
 # add tfm to the federalist data frame
 federalist = pd.concat([federalist, tfm], axis=1)
 
-select_vars = ['fed_num', 'author'] + words
+model_words = ['upon', 'there', 'consequently', 'whilst']
+
+select_vars = ['fed_num', 'author'] + model_words
 
 hm_data = (
     federalist.loc[federalist['author'].isin(['Hamilton', 'Madison']),
                    select_vars]
-).copy()
+).copy().reset_index(drop=True)
 
-hm_data['author'] = np.where(hm_data['author'] == "Hamilton", 1, -1)
+hm_data['author_y'] = np.where(hm_data['author'] == "Hamilton", 1, -1)
 
 hm_data.head()
 
-hm_model = 'author ~ upon + there + consequently + whilst'
+hm_model = 'author_y ~ upon + there + consequently + whilst'
 
 hm_fit = smf.ols(hm_model, data=hm_data).fit()
 
@@ -345,5 +347,63 @@ hm_fitted = hm_fit.fittedvalues
 np.std(hm_fitted)
 
 # Section 5.1.5: Cross-Validation
+
+# proportion of correctly classified essays for Hamilton
+(hm_fitted[hm_data['author_y']==1] > 0).mean()
+
+# proportion of correctly classified essays for Madison
+(hm_fitted[hm_data['author_y']==-1] < 0).mean()
+
+n = len(hm_data)
+
+# a container vector
+hm_classify = np.zeros(n)
+
+for i in range(n):
+    # fit the model to the data after removing the ith observation
+    sub_fit = smf.ols(hm_model, data=hm_data.drop(i)).fit()
+    # predict the authorship for the ith observation
+    # [[]] ensures the row remains a data frame
+    # finally, extract value from prediction Series without index
+    hm_classify[i] = sub_fit.predict(hm_data.iloc[[i]]).iloc[0]
+
+# proportion of correctly classified essays for Hamilton
+(hm_classify[hm_data['author_y']==1] > 0).mean()
+
+# proportion of correctly classified essays for Madison
+(hm_classify[hm_data['author_y']==-1] < 0).mean()
+
+# subset essays with disputed authorship
+disputed = federalist.loc[federalist['author']=='Disputed', select_vars]
+
+# predict the authorship of the disputed essays
+pred = hm_fit.predict(disputed)
+pred
+
+# prepare the data for plotting
+hm_data['pred'] = hm_fitted
+disputed['pred'] = pred
+
+plot_vars = ['fed_num', 'author', 'pred']
+
+plot_data = pd.concat([hm_data[plot_vars], disputed[plot_vars]], 
+                      axis=0, ignore_index=True)
+
+import seaborn as sns
+
+sns.set_style('ticks')
+
+(sns.relplot(
+    data=plot_data, x='fed_num', y='pred', hue='author', style='author', 
+    palette=['red', 'blue', 'black'], markers = ['s', 'o', '^'],
+    height=4, aspect=1.5
+).set(xlabel='Federalist Papers', ylabel='Predicted values')
+.despine(right=False, top=False)._legend.set_title('Author'))
+
+plt.axhline(y=0, color='black', linestyle='--', linewidth=1)
+
+# ------------------------- Section 5.2: Network Data ------------------------ #
+
+# Section 5.2.1: Marriage Network in Renaissance Florence
 
 # In progress
