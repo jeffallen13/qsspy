@@ -406,4 +406,12 @@ plt.axhline(y=0, color='black', linestyle='--', linewidth=1)
 
 # Section 5.2.1: Marriage Network in Renaissance Florence
 
-# In progress
+florence = pd.read_csv('florentine.csv', index_col='FAMILY')
+
+florence.iloc[:5,:5]
+
+florence.sum(axis='columns')
+
+# Section 5.2.2: Undirected Graph and Centrality Measures
+
+# In Progress
