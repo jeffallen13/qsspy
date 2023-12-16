@@ -11,6 +11,7 @@
 import pandas as pd
 import numpy as np
 import glob
+import matplotlib.pyplot as plt
 
 # Get a list of all txt files in the federalist directory
 file_paths = glob.glob('federalist/*.txt')
@@ -157,7 +158,6 @@ dtm_mat.iloc[:,:10].head()
 # Section 5.1.3: Topic Discovery
 
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 
 essay_12 = dtm_mat.iloc[11,:]
 essay_24 = dtm_mat.iloc[23,:]
@@ -413,5 +413,69 @@ florence.iloc[:5,:5]
 florence.sum(axis='columns')
 
 # Section 5.2.2: Undirected Graph and Centrality Measures
+
+# Note: if installing from conda forge, install 'python-igraph'
+import igraph as ig
+
+florence_g = ig.Graph.Adjacency(florence, mode='undirected')
+
+# plot the graph
+fig, ax = plt.subplots(figsize=(6,6))
+
+ig.plot(
+    florence_g,
+    target=ax,
+    vertex_size=0.6,
+    vertex_label=florence_g.vs["name"],
+    vertex_label_size=6.0,
+    vertex_color='gray'
+)
+
+florence_g.degree() # a list
+
+florence_g.vs['name']
+
+pd.Series(florence_g.degree(), index=florence_g.vs['name'])
+
+pd.Series(florence_g.closeness(normalized=False), index=florence_g.vs['name'])
+
+1 / (pd.Series(florence_g.closeness(normalized=False), 
+               index=florence_g.vs['name']) * 15)
+
+pd.Series(florence_g.betweenness(directed=False), index=florence_g.vs['name'])
+
+close = pd.Series(florence_g.closeness(normalized=False), 
+                  index=florence_g.vs['name'])
+
+close['PUCCI'] = 0
+
+fig, ax = plt.subplots(figsize=(6,6))
+
+ig.plot(
+    florence_g,
+    target=ax,
+    vertex_size=close * 25,
+    vertex_label=florence_g.vs["name"],
+    vertex_label_size=6.0,
+    vertex_color='gray',
+    bbox=(0, 0, 300, 300),
+    margin=20
+).set(title='Closeness')
+
+
+fig, ax = plt.subplots(figsize=(6,6))
+
+ig.plot(
+    florence_g,
+    target=ax,
+    vertex_size=pd.Series(florence_g.betweenness(directed=False)) / 50,
+    vertex_label=florence_g.vs["name"],
+    vertex_label_size=6.0,
+    vertex_color='gray',
+    bbox=(0, 0, 300, 300),
+    margin=20
+).set(title='Betweenness')
+
+# Section 5.2.3: Twitter-Following Network
 
 # In Progress
