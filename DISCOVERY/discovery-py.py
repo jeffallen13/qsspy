@@ -10,8 +10,9 @@
 
 import pandas as pd
 import numpy as np
-import glob
+import seaborn as sns
 import matplotlib.pyplot as plt
+import glob
 
 # Get a list of all txt files in the federalist directory
 file_paths = glob.glob('federalist/*.txt')
@@ -389,8 +390,6 @@ plot_vars = ['fed_num', 'author', 'pred']
 plot_data = pd.concat([hm_data[plot_vars], disputed[plot_vars]], 
                       axis=0, ignore_index=True)
 
-import seaborn as sns
-
 sns.set_style('ticks')
 
 (sns.relplot(
@@ -477,5 +476,23 @@ ig.plot(
 ).set(title='Betweenness')
 
 # Section 5.2.3: Twitter-Following Network
+
+twitter = pd.read_csv('twitter-following.csv')
+senator = pd.read_csv('twitter-senator.csv')
+
+n = senator.shape[0] # number of senators
+
+# initialize adjacency matrix
+twitter_adj = pd.DataFrame(np.zeros((n, n)), 
+                           columns=senator['screen_name'], 
+                           index=senator['screen_name'])
+
+# change 0 to 1 when edge goes from node i to node j
+for i in range(len(twitter)):
+    twitter_adj.loc[twitter.loc[i,'following'], twitter.loc[i,'followed']] = 1
+
+twitter_g = ig.Graph.Adjacency(twitter_adj, mode='directed')
+
+# Section 5.2.4: Directed Graph and Centrality
 
 # In Progress
