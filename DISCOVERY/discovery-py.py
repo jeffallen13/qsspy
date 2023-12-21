@@ -495,4 +495,91 @@ twitter_g = ig.Graph.Adjacency(twitter_adj, mode='directed')
 
 # Section 5.2.4: Directed Graph and Centrality
 
+senator['indegree'] = twitter_g.indegree()
+senator['outdegree'] = twitter_g.outdegree()
+
+# 5 greatest indegree
+senator.sort_values(by='indegree', ascending=False).head(5)
+
+# 5 greatest outdegree
+senator.sort_values(by='outdegree', ascending=False).head(5)
+
+# closeness for incoming and outgoing paths
+senator['close_in'] = twitter_g.closeness(mode='in', normalized=False)
+senator['close_out'] = twitter_g.closeness(mode='out', normalized=False)
+
+# directed and undirected betweenness
+senator['betweenness_d'] = twitter_g.betweenness(directed=True)
+senator['betweenness_u'] = twitter_g.betweenness(directed=False)
+
+fig, axs = plt.subplots(1, 2, figsize=(12,5))
+
+sns.scatterplot(
+    data=senator, x='close_in', y='close_out', ax=axs[0],
+    hue='party', palette=['r', 'b', 'k'], legend=False,
+    style='party', markers=['o', '^', 'X']
+).set(title='Closeness', xlabel='Incoming path', ylabel='Outgoing path')
+
+sns.scatterplot(
+    data=senator, x='betweenness_d', y='betweenness_u', ax=axs[1],
+    hue='party', palette=['r', 'b', 'k'], legend=False,
+    style='party', markers=['o', '^', 'X']
+).set(title='Betweenness', xlabel='Directed', ylabel='Undirected')
+
+# senator PageRank
+senator['pagerank'] = twitter_g.pagerank()
+
+# save colors for plotting
+v_color = np.where(senator.party=='R', 'red', 
+                   np.where(senator.party=='D', 'blue', 'black'))
+
+fig, ax = plt.subplots(figsize=(6,6))
+
+ig.plot(
+    twitter_g,
+    target=ax,
+    vertex_size=senator['pagerank'] * 25,
+    vertex_color=v_color,
+    bbox=(0, 0, 300, 300),
+    margin=20
+).set(title='Page Rank')
+
+
+def PageRank(n, A, d, pr):
+    g = ig.Graph.Adjacency(A)
+    deg = g.outdegree()
+    for j in range(n):
+        pr[j] = (1 - d) / n + d * sum(adj[:,j] * pr / deg)
+    return pr
+
+nodes = 4
+
+# adjacency matrix with arbitrary values
+adj = (np.array([0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0]).
+       reshape(nodes, nodes))
+
+# typical choice of constant
+d = 0.85 
+
+# starting values
+pr = np.array([1/nodes] * nodes)
+
+# maximum absolute difference; use value greater than threshold
+diff = 100
+
+# while loop with 0.001 as the threshold
+while diff > 0.001:
+    # save the previous iteration
+    pr_pre = pr.copy()
+    pr = PageRank(n=nodes, A=adj, d=d, pr=pr)
+    diff = max(abs(pr - pr_pre))
+
+pr
+
+# ------------------------- Section 5.3: Spatial Data ------------------------ #
+
+# Section 5.3.1: The 1854 Cholera Outbreak in Action
+
+# Section 5.3.2: Spatial Data in Python
+
 # In Progress
