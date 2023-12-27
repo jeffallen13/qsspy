@@ -580,6 +580,119 @@ pr
 
 # Section 5.3.1: The 1854 Cholera Outbreak in Action
 
-# Section 5.3.2: Spatial Data in Python
+# Section 5.3.2: Spatial Data with GeoPandas
+
+import geopandas as gpd
+
+# read in the shapefile (.shp) of the U.S. states
+# Source: U.S. Census Bureau's Cartographic Boundary Files
+usa = gpd.read_file('cb_2022_us_state_500k/cb_2022_us_state_500k.shp')
+
+type(usa) # a GeoDataFrame
+
+# a GeoDataFrame is a pandas DataFrame with 'GeoSeries.'
+usa.head() 
+
+usa.shape
+
+'''
+The Census Bureau uses the North American Datum 1983 (NAD83) Coordinate 
+Reference System (CRS)
+'''
+usa.crs
+
+# plot the map
+usa.plot()
+
+# focus on the continental U.S.
+non_cont = ['Alaska', 'Hawaii', 'Puerto Rico', 'United States Virgin Islands',
+            'Commonwealth of the Northern Mariana Islands', 'Guam', 
+            'American Samoa']
+
+usa_cont = usa.loc[~usa['NAME'].isin(non_cont)].copy().reset_index(drop=True)
+
+usa_cont.boundary.plot(edgecolor='black', linewidth=0.5).axis('off')
+
+# import cities data; source: Becker and others (2021)
+us_cities = pd.read_csv('us_cities.csv')
+
+# convert to GeoDataFrame
+us_cities = gpd.GeoDataFrame(
+    us_cities, 
+    geometry=gpd.points_from_xy(us_cities['long'], us_cities['lat']),
+    # specify the CRS associated with lat and long measurements
+    crs='EPSG:4326'
+)
+
+us_cities.crs
+
+# subset capitals of continental U.S. states
+usa_cont_capitals = (
+    us_cities.loc[(us_cities['capital']==2) & 
+                  ~us_cities['country_etc'].isin(['AK', 'HI'])]
+                  .copy().reset_index(drop=True)
+)
+    
+# Re-project the usa_cont GeoDataFrame to match the CRS of the us_cities
+usa_cont = usa_cont.to_crs(us_cities.crs)
+
+usa_cont.crs
+
+# plot capitals on top of state map
+base_map = usa_cont.plot(color='white', edgecolor='black', linewidth=0.5)
+
+usa_cont_capitals.plot(ax=base_map, color='gray', 
+                       markersize=usa_cont_capitals['pop']/25000)
+
+base_map.set_axis_off()
+
+base_map.set_title('US state capitals')
+
+california = usa_cont.loc[usa_cont['NAME']=='California']
+
+cal_cities = us_cities.loc[us_cities['country_etc']=='CA']
+
+top7 = cal_cities.sort_values(by='pop', ascending=False).head(7)
+
+# Extract the city name from the name column (i.e., remove 'CA')
+top7['city_name'] = top7['name'].str[:-3]
+
+# plot top 7 cities on top of California
+base_map = california.boundary.plot(edgecolor='black', linewidth=0.75)
+
+top7.plot(ax=base_map, color='black')
+  
+# Re-do the loop adding a buffer so that the text is not on top of the point
+for i in range(len(top7)):
+    plt.annotate(top7.iloc[i]['city_name'], 
+                 (top7.iloc[i]['long'] + 0.25, top7.iloc[i]['lat']),
+                 fontsize=8)
+
+base_map.set_axis_off()
+
+base_map.set_title('Largest cities in California')
+
+# review geometric attributes of states
+
+# geometry type
+usa_cont.geom_type.head(5)
+
+# geometries
+usa_cont.geometry.head(5)
+
+# bounds of each state
+usa_cont.bounds.head(5)
+
+# Section 5.3.3: Colors in Matplotlib
 
 # In Progress
+
+# -------------------------------- References -------------------------------- #
+
+'''
+Becker, Richard A., Allan R. Wilks, Ray Brownrigg, Thomas P. Minka, and Alex
+Deckmyn. 2021. maps: Draw Geographical Maps. R package version 3.4.0. Original 
+S code by Richard A. Becker and Allan R. Wilks. R version by Ray Brownrigg. 
+Enhancements by Thomas P Minka and Alex Deckmyn. 
+https://CRAN.R-project.org/package=maps.
+'''
