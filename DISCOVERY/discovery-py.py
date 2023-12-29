@@ -631,12 +631,12 @@ usa_cont_capitals = (
 )
     
 # Re-project the usa_cont GeoDataFrame to match the CRS of the us_cities
-usa_cont = usa_cont.to_crs(us_cities.crs)
+usa_cont2 = usa_cont.to_crs(us_cities.crs)
 
-usa_cont.crs
+usa_cont2.crs
 
 # plot capitals on top of state map
-base_map = usa_cont.plot(color='white', edgecolor='black', linewidth=0.5)
+base_map = usa_cont2.plot(color='white', edgecolor='black', linewidth=0.5)
 
 usa_cont_capitals.plot(ax=base_map, markersize=usa_cont_capitals['pop']/10000)
 
@@ -644,7 +644,7 @@ base_map.set_axis_off()
 
 base_map.set_title('US state capitals')
 
-california = usa_cont.loc[usa_cont['NAME']=='California']
+california = usa_cont2.loc[usa_cont['NAME']=='California']
 
 cal_cities = us_cities.loc[us_cities['country_etc']=='CA']
 
@@ -658,7 +658,6 @@ base_map = california.boundary.plot(edgecolor='black', linewidth=0.75)
 
 top7.plot(ax=base_map, color='black')
   
-# Re-do the loop adding a buffer so that the text is not on top of the point
 for i in range(len(top7)):
     plt.annotate(top7.iloc[i]['city_name'], 
                  (top7.iloc[i]['long'] + 0.25, top7.iloc[i]['lat']),
@@ -735,6 +734,52 @@ plt.xlim(0.5, 4.5)
 plt.ylim(0.5, 4.5)
 
 # Section 5.3.4: US Presidential Elections
+
+pres08 = pd.read_csv('pres08.csv')
+
+# two-party vote share
+pres08['Dem'] = pres08['Obama'] / (pres08['Obama'] + pres08['McCain'])
+pres08['Rep'] = pres08['McCain'] / (pres08['Obama'] + pres08['McCain'])
+
+# assign red and blue colors based on two-party vote share
+pres08['color'] = np.where(pres08['Rep'] > pres08['Dem'], 'r', 'b')
+
+# add tuples of rgb values based on two-party vote share
+pres08['color_p'] = pres08.apply(lambda x: (x['Rep'], 0, x['Dem']), axis=1)
+
+pres08['color_p'].head(5)
+
+fig, axs = plt.subplots(1, 2, figsize=(8,4))
+
+# California as a blue state
+california.plot(ax=axs[0], 
+                color=pres08['color'].loc[pres08.state=='CA'].iloc[0])
+
+axs[0].axis('off')
+
+# California as a purple state
+california.plot(ax=axs[1], 
+                color=pres08['color_p'].loc[pres08.state=='CA'].iloc[0])
+
+axs[1].axis('off')
+
+# merge the GeoDataFrame and the colors from pres08 on state abbreviations
+usa_cont = pd.merge(
+    usa_cont, pres08[['state', 'color', 'color_p']],
+    left_on='STUSPS', right_on='state', how='left'
+).drop('state', axis='columns')
+
+usa_cont.columns
+
+fig, axs = plt.subplots(1, 2, figsize=(12,6))
+
+usa_cont.plot(ax=axs[0], color=usa_cont['color'], edgecolor='black', 
+              linewidth=0.5).axis('off')
+
+usa_cont.plot(ax=axs[1], color=usa_cont['color_p'], edgecolor='black', 
+              linewidth=0.5).axis('off')
+
+# Section 5.3.5: Expansion of Walmart
 
 # In Progress
 
