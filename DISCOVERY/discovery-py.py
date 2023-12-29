@@ -601,9 +601,6 @@ Reference System (CRS)
 '''
 usa.crs
 
-# plot the map
-usa.plot()
-
 # focus on the continental U.S.
 non_cont = ['Alaska', 'Hawaii', 'Puerto Rico', 'United States Virgin Islands',
             'Commonwealth of the Northern Mariana Islands', 'Guam', 
@@ -641,8 +638,7 @@ usa_cont.crs
 # plot capitals on top of state map
 base_map = usa_cont.plot(color='white', edgecolor='black', linewidth=0.5)
 
-usa_cont_capitals.plot(ax=base_map, color='gray', 
-                       markersize=usa_cont_capitals['pop']/25000)
+usa_cont_capitals.plot(ax=base_map, markersize=usa_cont_capitals['pop']/10000)
 
 base_map.set_axis_off()
 
@@ -684,6 +680,61 @@ usa_cont.geometry.head(5)
 usa_cont.bounds.head(5)
 
 # Section 5.3.3: Colors in Matplotlib
+
+import matplotlib.colors as mcolors
+
+# base colors with intensities on rgb scale
+mcolors.BASE_COLORS
+
+# Number of supported colors from different color palettes
+print(len(mcolors.TABLEAU_COLORS))
+print(len(mcolors.CSS4_COLORS))
+print(len(mcolors.XKCD_COLORS))
+
+# Colors in the CSS4 palette with Hex codes
+pd.Series(mcolors.CSS4_COLORS)
+
+red = (1, 0, 0)
+green = (0, 1, 0)
+blue = (0, 0, 1)
+
+# case-insensitive hex codes
+print(f'''
+Red: {mcolors.to_hex(red)}
+Green: {mcolors.to_hex(green)}
+Blue: {mcolors.to_hex(blue)}''')
+
+black = (0, 0, 0)
+white = (1, 1, 1)
+
+print(f'''
+Black: {mcolors.to_hex(black)}
+White: {mcolors.to_hex(white)}''')
+
+purple = (0.5, 0, 0.5)
+yellow = (1, 1, 0)
+
+print(f'''
+Purple: {mcolors.to_hex(purple)}
+Yellow: {mcolors.to_hex(yellow)}''')
+
+# semi-transparent blue; specify alpha (r, g, b, alpha)
+blue_trans = (0, 0, 1, 0.5)
+# semi-transparent black
+black_trans = (0, 0, 0, 0.5)
+
+x = [1, 1, 2, 2, 3, 3, 4, 4]
+y = [1, 1.2, 2, 2.2, 3, 3.2, 4, 4.2]
+
+colors = [black]*2 + [black_trans]*2 + [blue]*2 + [blue_trans]*2
+ 
+# completely colored dots difficult to distinguish
+# semi-transparent dots easier to distinguish
+plt.scatter(x, y, s=500, color=colors)
+plt.xlim(0.5, 4.5)
+plt.ylim(0.5, 4.5)
+
+# Section 5.3.4: US Presidential Elections
 
 # In Progress
 
