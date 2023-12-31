@@ -631,12 +631,12 @@ usa_cont_capitals = (
 )
     
 # Re-project the usa_cont GeoDataFrame to match the CRS of the us_cities
-usa_cont2 = usa_cont.to_crs(us_cities.crs)
+usa_cont = usa_cont.to_crs(us_cities.crs)
 
-usa_cont2.crs
+usa_cont.crs
 
 # plot capitals on top of state map
-base_map = usa_cont2.plot(color='white', edgecolor='black', linewidth=0.5)
+base_map = usa_cont.plot(color='white', edgecolor='black', linewidth=0.5)
 
 usa_cont_capitals.plot(ax=base_map, markersize=usa_cont_capitals['pop']/10000)
 
@@ -644,7 +644,7 @@ base_map.set_axis_off()
 
 base_map.set_title('US state capitals')
 
-california = usa_cont2.loc[usa_cont['NAME']=='California']
+california = usa_cont.loc[usa_cont['NAME']=='California']
 
 cal_cities = us_cities.loc[us_cities['country_etc']=='CA']
 
@@ -654,18 +654,18 @@ top7 = cal_cities.sort_values(by='pop', ascending=False).head(7)
 top7['city_name'] = top7['name'].str[:-3]
 
 # plot top 7 cities on top of California
-base_map = california.boundary.plot(edgecolor='black', linewidth=0.75)
+cal_map = california.boundary.plot(edgecolor='black', linewidth=0.75)
 
-top7.plot(ax=base_map, color='black')
+top7.plot(ax=cal_map, color='black')
   
 for i in range(len(top7)):
     plt.annotate(top7.iloc[i]['city_name'], 
                  (top7.iloc[i]['long'] + 0.25, top7.iloc[i]['lat']),
                  fontsize=8)
 
-base_map.set_axis_off()
+cal_map.set_axis_off()
 
-base_map.set_title('Largest cities in California')
+cal_map.set_title('Largest cities in California')
 
 # review geometric attributes of states
 
@@ -729,6 +729,7 @@ colors = [black]*2 + [black_trans]*2 + [blue]*2 + [blue_trans]*2
  
 # completely colored dots difficult to distinguish
 # semi-transparent dots easier to distinguish
+plt.figure() # open a new figure
 plt.scatter(x, y, s=500, color=colors)
 plt.xlim(0.5, 4.5)
 plt.ylim(0.5, 4.5)
@@ -780,6 +781,51 @@ usa_cont.plot(ax=axs[1], color=usa_cont['color_p'], edgecolor='black',
               linewidth=0.5).axis('off')
 
 # Section 5.3.5: Expansion of Walmart
+
+walmart = pd.read_csv('walmart.csv')
+
+walmart.head()
+
+walmart['type'].value_counts()
+
+# create store_type column for easier plotting
+walmart['store_type'] = np.where(
+    walmart['type']=='Wal-MartStore', 'Store',
+    np.where(walmart['type']=='SuperCenter', 'Supercenter', 'Distribution')
+)
+
+# convert to categorical and reorder categories
+walmart['store_type'] = (
+    walmart['store_type'].astype('category').cat.reorder_categories(
+        ['Store', 'Supercenter', 'Distribution'])
+) 
+
+# add marker size column
+walmart['msize'] = np.where(walmart['store_type']=='Distribution', 30, 10)
+
+# convert to GeoDataFrame
+walmart = gpd.GeoDataFrame(
+    walmart, 
+    geometry=gpd.points_from_xy(walmart['long'], walmart['lat']),
+    crs='EPSG:4326'
+)
+
+# define colors and transparency
+store = (1, 0, 0, 1/3)
+supercenter = (0, 1, 0, 1/3)
+distribution = (0, 0, 1, 1/3)
+
+# plot Walmart locations on top of state map
+usa_map = usa_cont.plot(color='white', edgecolor='black', linewidth=0.5)
+
+walmart.plot(ax=usa_map, column='store_type', categorical=True, legend=True,
+             markersize=walmart['msize'],
+             # define custom colormap 
+             cmap=mcolors.ListedColormap([store, supercenter, distribution]))
+
+usa_map.set_axis_off()
+
+# Section 5.3.6: Animation in Matplotlib
 
 # In Progress
 
