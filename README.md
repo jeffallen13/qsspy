@@ -12,11 +12,11 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 
 | Chapter | Status |
 | --- |:---:|
-| 1. Introduction | **X** |
+| 1. Introduction | In Progress |
 | 2. Causality | [Complete](https://github.com/jeffallen13/qsspy/tree/main/CAUSALITY) |
 | 3. Measurement | [Complete](https://github.com/jeffallen13/qsspy/tree/main/MEASUREMENT) |
 | 4. Prediction| [Complete](https://github.com/jeffallen13/qsspy/tree/main/PREDICTION) |
-| 5. Discovery | [In Progress](https://github.com/jeffallen13/qsspy/tree/main/DISCOVERY) |
+| 5. Discovery | [Complete](https://github.com/jeffallen13/qsspy/tree/main/DISCOVERY) |
 | 6. Probability | [Complete](https://github.com/jeffallen13/qsspy/tree/main/PROBABILITY) |
 | 7. Uncertainty| [Complete](https://github.com/jeffallen13/qsspy/tree/main/UNCERTAINTY) |
 
