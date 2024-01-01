@@ -827,7 +827,62 @@ usa_map.set_axis_off()
 
 # Section 5.3.6: Animation in Matplotlib
 
-# In Progress
+# convert 'opendate' to datetime
+walmart['opendate'] = pd.to_datetime(walmart['opendate'])
+
+# extract year
+walmart['year'] = walmart['opendate'].dt.year
+
+# define a function to plot Walmart locations as of year-end for a given year
+def walmart_map(base_map, data, year, ax=None):
+    
+    # if ax is not specified, use the current axis or create a new one
+    if ax is None:
+        ax = plt.gca()
+
+    # define colors and transparency
+    store = (1, 0, 0, 1/3)
+    supercenter = (0, 1, 0, 1/3)
+    distribution = (0, 0, 1, 1/3)
+    
+    walmart_sub = data.loc[data['year'] <= year]
+
+    base_map.plot(ax=ax, color='white', edgecolor='black', linewidth=0.5)
+
+    walmart_sub.plot(
+        ax=ax, column='store_type', categorical=True, legend=False,
+        markersize=walmart['msize'],
+        cmap=mcolors.ListedColormap([store, supercenter, distribution]))
+
+    ax.set_axis_off()
+
+    ax.set_title(f'{year}')
+
+
+fig, axs = plt.subplots(2, 2, figsize=(12,6))
+
+walmart_map(usa_cont, walmart, 1975, ax=axs[0,0])
+
+walmart_map(usa_cont, walmart, 1985, ax=axs[0,1])
+
+walmart_map(usa_cont, walmart, 1995, ax=axs[1,0])
+
+walmart_map(usa_cont, walmart, 2005, ax=axs[1,1])
+
+## Animation using FuncAnimation
+# from matplotlib.animation import FuncAnimation
+
+# years = range(walmart['year'].min(), walmart['year'].max() + 1)
+
+# fig, ax = plt.subplots()
+
+# ani = FuncAnimation(
+#     fig, lambda year: walmart_map(usa_cont, walmart, year, ax), 
+#     frames=years, repeat=False
+# )
+
+# ani.save('walmart.html', writer='html', fps=2)
+
 
 # -------------------------------- References -------------------------------- #
 
