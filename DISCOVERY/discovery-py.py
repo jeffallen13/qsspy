@@ -211,7 +211,7 @@ dtm_tfidf_hamilton = dtm_tfidf_mat[federalist['author']=='Hamilton']
 
 k = 4 # number of clusters
 # instantiate the KMeans object; set random_state for reproducibility
-km_out = KMeans(n_clusters=k, n_init=1, random_state=1234) 
+km_out = KMeans(n_clusters=k, n_init=1, random_state=42) 
 # fit the model
 km_out.fit(dtm_tfidf_hamilton) 
 
@@ -248,10 +248,10 @@ for i in range(len(clusters)):
 
 '''
 A few themes that emerge:
-Cluster 1: courts, law, jurisprudence
-Cluster 2: state power, tax, revenue
-Cluster 3: institutional design, executive, legislature
-Cluster 4: state power, national government
+Cluster 1: armed forces
+Cluster 2: institutional design, executive, legislature
+Cluster 3: state power, national government
+Cluster 4: courts, law, jurisprudence
 '''
 
 # Section 5.1.4: Authorship Prediction
@@ -424,10 +424,10 @@ fig, ax = plt.subplots(figsize=(6,6))
 ig.plot(
     florence_g,
     target=ax,
-    vertex_size=0.6,
+    vertex_size=40,
     vertex_label=florence_g.vs["name"],
     vertex_label_size=6.0,
-    vertex_color='gray'
+    vertex_color='lightgray'
 )
 
 florence_g.degree() # a list
@@ -453,13 +453,13 @@ fig, ax = plt.subplots(figsize=(6,6))
 ig.plot(
     florence_g,
     target=ax,
-    vertex_size=close * 25,
+    vertex_size=close * 1500,
     vertex_label=florence_g.vs["name"],
     vertex_label_size=6.0,
-    vertex_color='gray',
-    bbox=(0, 0, 300, 300),
-    margin=20
-).set(title='Closeness')
+    vertex_color='lightgray'
+)
+
+ax.set(title='Closeness')
 
 
 fig, ax = plt.subplots(figsize=(6,6))
@@ -467,13 +467,13 @@ fig, ax = plt.subplots(figsize=(6,6))
 ig.plot(
     florence_g,
     target=ax,
-    vertex_size=pd.Series(florence_g.betweenness(directed=False)) / 50,
+    vertex_size=pd.Series(florence_g.betweenness(directed=False)) * 1.5,
     vertex_label=florence_g.vs["name"],
     vertex_label_size=6.0,
-    vertex_color='gray',
-    bbox=(0, 0, 300, 300),
-    margin=20
-).set(title='Betweenness')
+    vertex_color='lightgray'
+)
+
+ax.set(title='Betweenness')
 
 # Section 5.2.3: Twitter-Following Network
 
@@ -538,11 +538,14 @@ fig, ax = plt.subplots(figsize=(6,6))
 ig.plot(
     twitter_g,
     target=ax,
-    vertex_size=senator['pagerank'] * 25,
+    vertex_size=senator['pagerank'] * 2000,
     vertex_color=v_color,
-    bbox=(0, 0, 300, 300),
-    margin=20
-).set(title='Page Rank')
+    edge_color='lightgray',
+    edge_width=0.5,
+    edge_arrow_size=0.75,
+)
+
+ax.set(title='Page Rank')
 
 
 def PageRank(n, A, d, pr):

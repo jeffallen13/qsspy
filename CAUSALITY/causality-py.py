@@ -203,7 +203,7 @@ resume.describe(include='all') # output is not visually appealing
 
 # create a factor variable 
 
-resume['type'] = np.nan
+resume['type'] = ''
 (resume.loc[(resume.race == "black") & 
             (resume.sex == "female"), 'type']) = 'BlackFemale'
 (resume.loc[(resume.race == "black") & 
