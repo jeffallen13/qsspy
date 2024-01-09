@@ -24,15 +24,23 @@ The Python companion guides are a work-in-progress. The table below summarizes t
 
 The companion guides focus on replicating the QSS analysis in Python. Currently, they do not contain detailed instructions on setting up a Python environment. Fortunately, there are many excellent and free resources available online that provide guidance in this respect. Below are a few recommendations.
 
-### Installation and Packages
+### Installation and Package Management
 
-I recommend following the [Installation and Setup](https://wesmckinney.com/book/preliminaries#installation_and_setup) instructions in Wes McKinney's [Python for Data Analysis, 3E](https://wesmckinney.com/book/). The instructions walk readers through a few important steps: 
+A good option is to follow the [Installation and Setup](https://wesmckinney.com/book/preliminaries#installation_and_setup) instructions in Wes McKinney's [Python for Data Analysis, 3E](https://wesmckinney.com/book/). The instructions walk readers through a few important steps: 
 
 - Installing Python via [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) 
 - Working with [conda environments](https://conda.io/projects/conda/en/latest/user-guide/index.html)
 - Installing packages from the [conda-forge](https://conda-forge.org/) channel
 
-The companion guides use the following packages extensively:
+The approach outlined above is one among many options. Other popular ways to install Python and manage packages include: 
+
+- Installing Python from the [Python Software Foundation](https://www.python.org/downloads/), using the [pip](https://pip.pypa.io/en/stable/) package manager to install packages from the [Python Package Index](https://pypi.org/) (PyPI), and managing packages with Python [virtual environments](https://docs.python.org/3/tutorial/venv.html). This approach is similar to installing miniconda and using conda, conda-forge, and conda environments. Note that these approaches are not mutually exclusive. For example, you can use pip to install packages from PyPI into a conda environment.
+- Installing an [Anaconda](https://www.anaconda.com/) distribution of Python. Anaconda comes pre-loaded with many data analysis packages, including those listed above. Anaconda offers a free [individual version](https://www.anaconda.com/pricing/individuals/). 
+- Using container-based approaches, such as [Docker](https://www.docker.com/). This is a more advanced workflow that is widely used for deploying applications. 
+
+### Required Packages
+
+After setting up a Python environment, you will need to install the packages that are necessary for running the `qsspy` code. The following packages are used extensively:
 
 - [pandas](https://pandas.pydata.org/)
 - [numpy](https://numpy.org/) 
@@ -42,11 +50,9 @@ The companion guides use the following packages extensively:
 - [scikit-learn](https://scikit-learn.org/stable/)
 - [scipy](https://www.scipy.org/)
 
-The installation and package management approach outlined above is one among many options. Other popular ways to install Python and manage packages include: 
+Chapter 5, `Discovery`, also makes targeted use of nltk, wordcloud, python-igraph, and geopandas. 
 
-- Installing Python from the [Python Software Foundation](https://www.python.org/downloads/), using the [pip](https://pip.pypa.io/en/stable/) package manager to install packages from the [Python Package Index](https://pypi.org/) (PyPI), and managing packages with Python [virtual environments](https://docs.python.org/3/tutorial/venv.html). This approach is similar to installing miniconda and using conda, conda-forge, and conda environments. Note that these approaches are not mutually exclusive. For example, you can use pip to install packages from PyPI into a conda environment.
-- Installing an [Anaconda](https://www.anaconda.com/) distribution of Python. Anaconda comes pre-loaded with many data analysis packages, including those listed above. Anaconda offers a free [individual version](https://www.anaconda.com/pricing/individuals/). 
-- Using container-based approaches, such as [Docker](https://www.docker.com/). This is a more advanced workflow that is widely used for deploying applications. 
+If you are working with conda, you can use the `environment.yml` file contained in this repository to [create a conda environment](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file) that includes the required packages. 
 
 ### Integrated Development Environments
 
