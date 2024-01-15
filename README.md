@@ -4,21 +4,15 @@ Welcome! This repository contains Python companion guides for Kosuke Imai's [Qua
 
 The repository is modeled after the [QSS GitHub repository](https://github.com/kosukeimai/qss), which contains base R and tidyverse code for the original and [tidyverse](https://press.princeton.edu/books/hardcover/9780691222271/quantitative-social-science) editions of QSS, along with the datasets that are analyzed in book. 
 
-The python scripts are available in the following file formats: `.py`, `.ipynb`, and `.pdf`. The `.py` files are best for copying and running the code locally. The`.ipynb` files offer the best web-based viewing experience, including on GitHub. The `.pdf` files are best for printing. 
+The `qsspy` code is available for all book chapters (in `.py`, `.ipynb`, and `.pdf` file formats):
 
-## Development Status
-
-The Python companion guides are a work-in-progress. The table below summarizes the current development status. 
-
-| Chapter | Status |
-| --- |:---:|
-| 1. Introduction | In Progress |
-| 2. Causality | [Complete](https://github.com/jeffallen13/qsspy/tree/main/CAUSALITY) |
-| 3. Measurement | [Complete](https://github.com/jeffallen13/qsspy/tree/main/MEASUREMENT) |
-| 4. Prediction| [Complete](https://github.com/jeffallen13/qsspy/tree/main/PREDICTION) |
-| 5. Discovery | [Complete](https://github.com/jeffallen13/qsspy/tree/main/DISCOVERY) |
-| 6. Probability | [Complete](https://github.com/jeffallen13/qsspy/tree/main/PROBABILITY) |
-| 7. Uncertainty| [Complete](https://github.com/jeffallen13/qsspy/tree/main/UNCERTAINTY) |
+1. [Introduction](https://github.com/jeffallen13/qsspy/tree/main/INTRO)
+2. [Causality](https://github.com/jeffallen13/qsspy/tree/main/CAUSALITY)
+3. [Measurement](https://github.com/jeffallen13/qsspy/tree/main/MEASUREMENT)
+4. [Prediction](https://github.com/jeffallen13/qsspy/tree/main/PREDICTION)
+5. [Discovery](https://github.com/jeffallen13/qsspy/tree/main/DISCOVERY)
+6. [Probability](https://github.com/jeffallen13/qsspy/tree/main/PROBABILITY)
+7. [Uncertainty](https://github.com/jeffallen13/qsspy/tree/main/UNCERTAINTY)
 
 ## Setup
 
