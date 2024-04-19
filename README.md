@@ -29,7 +29,7 @@ A good option is to follow the [Installation and Setup](https://wesmckinney.com/
 The approach outlined above is one among many options. Other popular ways to install Python and manage packages include: 
 
 - Installing Python from the [Python Software Foundation](https://www.python.org/downloads/), using the [pip](https://pip.pypa.io/en/stable/) package manager to install packages from the [Python Package Index](https://pypi.org/) (PyPI), and managing packages with Python [virtual environments](https://docs.python.org/3/tutorial/venv.html). This approach is similar to installing miniconda and using conda, conda-forge, and conda environments. Note that these approaches are not mutually exclusive. For example, you can use pip to install packages from PyPI into a conda environment.
-- Installing an [Anaconda](https://www.anaconda.com/) distribution of Python. Anaconda comes pre-loaded with many data analysis packages. Anaconda offers a free [individual version](https://www.anaconda.com/pricing/individuals/). 
+- Installing an [Anaconda](https://www.anaconda.com/) distribution of Python. Anaconda comes pre-loaded with many data analysis packages. Anaconda offers a free individual version. 
 - Using container-based approaches, such as [Docker](https://www.docker.com/). This is a more advanced workflow that is widely used for deploying applications. 
 
 ### Required Packages
