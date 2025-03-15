@@ -2,8 +2,6 @@
 
 Welcome! This repository contains Python companion guides for Kosuke Imai's [Quantitative Social Science](https://press.princeton.edu/books/paperback/9780691175461/quantitative-social-science) (QSS). 
 
-The repository is modeled after the [QSS GitHub repository](https://github.com/kosukeimai/qss), which contains base R and tidyverse code for the original and [tidyverse](https://press.princeton.edu/books/hardcover/9780691222271/quantitative-social-science) editions of QSS, along with the datasets that are analyzed in book. 
-
 The `qsspy` code is available for all book chapters (in `.py`, `.ipynb`, and `.pdf` file formats):
 
 1. [Introduction](https://github.com/jeffallen13/qsspy/tree/main/INTRO)
